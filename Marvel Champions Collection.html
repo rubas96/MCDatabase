@@ -1466,10 +1466,12 @@ const HOH_BASE  = "https://hallofheroeslcg.com/wp-content/uploads/";
 // Keyed by the card code's 2-digit prefix (= the set). Value: [extension, folder1, folder2, …].
 // A couple of sets uploaded their cards across two month-folders, so we try each in turn.
 const HOH = {
+  "40":["jpg","2023/08"],
   "45":["jpg","2024/04"], "46":["jpg","2024/07"], "47":["jpg","2024/07"], "48":["jpg","2024/10"],
   "49":["jpg","2024/11","2024/12"], "50":["jpg","2025/03"], "51":["jpg","2025/05"],
   "52":["jpg","2025/05"], "53":["jpg","2025/06"], "54":["jpg","2025/06"],
   "55":["jpg","2025/08"], "56":["jpg","2025/11","2025/10"],
+  "57":["jpg","2026/03"],
   "58":["jpg","2026/03"], "59":["jpg","2026/03"]
 };
 
@@ -1580,10 +1582,31 @@ const esc = s=> (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2200);}
 function loader(on,txt){const l=$("#loader");if(txt)$("#loadtxt").textContent=txt;l.classList.toggle("show",!!on);}
 function prog(p){$("#pbar").style.width=Math.round(p*100)+"%";}
-function imgUrl(code){return IMG_BASE+code+".png";}
+// The Mad Titan's Shadow (set 21): las imágenes de MarvelCDB llevan marca de agua, así que
+// se sustituyen directamente por las de hallofheroeslcg.com (carpeta 2021/08, nombres propios
+// de HoH, no por código). Subset visible: 2 héroes + Thanos/Hela/Loki y sus esquemas.
+// Valor = ruta relativa dentro de HOH_BASE (carpeta/nombre, sin extensión). Para cartas cuya
+// imagen de HoH no se llama igual que su código (galerías con nombre propio o sufijos).
+const IMG_OVERRIDE = {
+  // The Mad Titan's Shadow (set 21): 2 héroes + Thanos/Hela/Loki y sus esquemas (galería con nombre)
+  "21001a":"2021/08/m0b","21001b":"2021/08/m0a","21031a":"2021/08/a0b","21031b":"2021/08/a0a",
+  "21111":"2021/08/t1-1","21112":"2021/08/t2-1","21113":"2021/08/t3-1","21114":"2021/08/t4b","21114a":"2021/08/t4a","21115":"2021/08/t5b","21115a":"2021/08/t5a",
+  "21136a":"2021/08/h1a","21137a":"2021/08/h2a","21138":"2021/08/h3b","21138a":"2021/08/h3a",
+  "21160":"2021/08/l1","21161":"2021/08/l2","21162":"2021/08/l3","21163":"2021/08/l4","21164":"2021/08/l5","21165":"2021/08/l6b","21165a":"2021/08/l6a",
+  // NeXt Evolution (set 40): main/side schemes a doble cara. El código liso = lado jugable,
+  // que HoH guarda como "<código>b"; el lado "Contents" (<código>a) ya entra por HOH["40"].
+  "40077":"2023/08/40077b","40078":"2023/08/40078b","40103":"2023/08/40103b","40104":"2023/08/40104b",
+  "40121":"2023/08/40121b","40139":"2023/08/40139b","40140":"2023/08/40140b","40141":"2023/08/40141b",
+  "40142":"2023/08/40142b","40143":"2023/08/40143b","40166":"2023/08/40166b","40167":"2023/08/40167b",
+  // Age of Apocalypse (set 45) — En Sabah Nur: solo los 2 main schemes a doble cara (lado jugable)
+  "45147":"2024/04/45147b","45148":"2024/04/45148b"
+};
+function imgUrl(code){const o=IMG_OVERRIDE[code];return o?HOH_BASE+o+".jpg":IMG_BASE+code+".png";}
 // Image error handler: 1st failure -> try Hall of Heroes (if the set is mapped); 2nd -> show the name.
 function imgErr(img){
   const code=img.dataset.code||"";
+  // Si una imagen sustituida (TMTS) fallara, volver a la de MarvelCDB en vez de quedar rota.
+  if(IMG_OVERRIDE[code] && img.src.indexOf("hallofheroeslcg")>=0){ img.onerror=null; img.src=IMG_BASE+code+".png"; return; }
   const m=HOH[code.slice(0,2)]; // [ext, folder1, folder2, …]
   const i=parseInt(img.dataset.hi||"0",10);
   if(m && code && i<m.length-1){ img.dataset.hi=String(i+1); img.src=`${HOH_BASE}${m[i+1]}/${code}.${m[0]}`; return; }
