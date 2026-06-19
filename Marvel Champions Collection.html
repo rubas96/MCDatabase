@@ -1466,6 +1466,7 @@ const HOH_BASE  = "https://hallofheroeslcg.com/wp-content/uploads/";
 // Keyed by the card code's 2-digit prefix (= the set). Value: [extension, folder1, folder2, …].
 // A couple of sets uploaded their cards across two month-folders, so we try each in turn.
 const HOH = {
+  "24":["jpg","2022/02"],
   "40":["jpg","2023/08"],
   "45":["jpg","2024/04"], "46":["jpg","2024/07"], "47":["jpg","2024/07"], "48":["jpg","2024/10"],
   "49":["jpg","2024/11","2024/12"], "50":["jpg","2025/03"], "51":["jpg","2025/05"],
@@ -1599,7 +1600,9 @@ const IMG_OVERRIDE = {
   "40121":"2023/08/40121b","40139":"2023/08/40139b","40140":"2023/08/40140b","40141":"2023/08/40141b",
   "40142":"2023/08/40142b","40143":"2023/08/40143b","40166":"2023/08/40166b","40167":"2023/08/40167b",
   // Age of Apocalypse (set 45) — En Sabah Nur: solo los 2 main schemes a doble cara (lado jugable)
-  "45147":"2024/04/45147b","45148":"2024/04/45148b"
+  "45147":"2024/04/45147b","45148":"2024/04/45148b",
+  // Standard II (set 24, pack hood) — environment a doble cara (lado B)
+  "24049":"2022/02/24049b"
 };
 function imgUrl(code){const o=IMG_OVERRIDE[code];return o?HOH_BASE+o+".jpg":IMG_BASE+code+".png";}
 // Image error handler: 1st failure -> try Hall of Heroes (if the set is mapped); 2nd -> show the name.
