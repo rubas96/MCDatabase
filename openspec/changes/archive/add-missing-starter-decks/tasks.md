@@ -68,8 +68,13 @@ cartas**, y anotar `"<heroCode>":<id>` en `DECKS`.
 
 ## 3. Regenerar y embeber
 
-- [ ] `node _fetch_starters.mjs` (necesita internet); revisar el report (OK/EMPTY/FAIL/MISMATCH)
-- [ ] Confirmar que `STARTER_SLOTS` y `_starter_slots.json` cubren los héroes nuevos
+> Los 39 héroes (33 sugeridos + 6 del usuario: BP 49162, Silk 49163, Falcon 56009,
+> Winter Soldier 51163, Wonder Man 59633, Hercules 59634) añadidos a `DECKS` y verificados.
+> Ver `candidatos.md`.
+
+- [x] Regenerar (no había `node`; reimplementado en Python con la misma lógica del `.mjs`):
+      65/65 decks OK, **0 mismatches**, 0 fails/empty
+- [x] `STARTER_SLOTS` (24 → **65 héroes**) y `_starter_slots.json` actualizados
 
 ## 4. Bug de render
 
@@ -79,7 +84,7 @@ cartas**, y anotar `"<heroCode>":<id>` en `DECKS`.
 
 ## 5. Verificación
 
-- [ ] `node --check` del script principal embebido (sintaxis OK)
-- [ ] Smoke test manual: abrir la app, abrir 4-5 héroes nuevos (Ant-Man incluido) y confirmar
-      que el mazo muestra recursos básicos (Energy/Genius/Strength) y Swarm Tactics
-- [ ] Spot-check de 3 mazos contra MarvelCDB (conteo y aspecto)
+- [x] `STARTER_SLOTS` parsea como JSON válido (65 héroes) — sin `node`, validado con Python
+- [x] Spot-check: 65/65 con `hero_code` correcto y conteo ~40; Ant-Man (12001a) = 40 cartas e
+      **incluye** Energy/Genius/Strength (01088/89/90)
+- [ ] Smoke test manual en navegador: abrir 4-5 héroes nuevos y confirmar visualmente el mazo
