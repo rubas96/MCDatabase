@@ -1,0 +1,5 @@
+datos
+*.md
+.git
+node_modules
+bun.lockb

@@ -1,0 +1,9 @@
+{
+  "name": "mc-sync",
+  "version": "1.0.0",
+  "description": "Servidor de sincronización de perfiles para Marvel Champions Collection (Bun, sin dependencias, sin seguridad).",
+  "module": "server.js",
+  "scripts": {
+    "start": "bun run server.js"
+  }
+}

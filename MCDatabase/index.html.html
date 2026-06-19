@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marvel Champions — Collection &amp; Deck Builder</title>
+<style>
+  :root{
+    --bg:#0e1116; --bg2:#161b24; --bg3:#1d2531; --line:#2a3340; --line2:#39465a;
+    --txt:#e8edf4; --muted:#9aa7b8; --muted2:#6f7d90;
+    --accent:#e62429; --accent2:#b51d22;
+    --aggression:#c1272d; --justice:#f3c218; --leadership:#2f6fb0; --protection:#3a9b4e;
+    --basic:#7d8794; --hero:#8a5cc4; --encounter:#5a6473; --pool:#e0529c;
+    --gold:#f0b323;
+    --good:#3a9b4e; --warn:#e0a32e; --bad:#e2433c;
+    --shadow:0 6px 22px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:linear-gradient(180deg,#0b0e13,#0e1116 240px);color:var(--txt);
+    font-family:"Segoe UI",system-ui,Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  a{color:#6fb3ff}
+  button{font-family:inherit;cursor:pointer}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 18px 80px}
+  header.top{background:linear-gradient(180deg,#171b22,#11151b);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+  .topbar{max-width:1240px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+  .brand .logo{width:40px;height:40px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#7a1518);display:grid;place-items:center;font-weight:900;color:#fff;font-size:20px;box-shadow:var(--shadow);flex:0 0 auto}
+  .brand h1{font-size:18px;margin:0;font-weight:800;letter-spacing:.2px}
+  .brand .sub{font-size:11.5px;color:var(--muted2);margin-top:1px}
+  .stats{display:flex;gap:14px;flex-wrap:wrap}
+  .stat{background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:6px 12px;text-align:center;min-width:74px}
+  .stat b{display:block;font-size:18px;line-height:1.1}
+  .stat span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .tools{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{background:var(--bg3);border:1px solid var(--line2);color:var(--txt);padding:8px 13px;border-radius:9px;font-size:13px;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{background:#283242;border-color:#4a5568;transform:translateY(-1px)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .btn.sm{padding:5px 9px;font-size:12px;border-radius:7px}
+  .btn.ghost{background:transparent}
+  nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:18px 0 22px;flex-wrap:wrap}
+  nav.tabs button{background:none;border:none;color:var(--muted);padding:11px 16px;font-size:14.5px;font-weight:700;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;transition:.15s}
+  nav.tabs button:hover{color:var(--txt);background:var(--bg2)}
+  nav.tabs button.active{color:#fff;border-bottom-color:var(--accent);background:linear-gradient(180deg,var(--bg2),transparent)}
+  section.tab{display:none;animation:fade .25s ease}
+  section.tab.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+  h2.title{font-size:20px;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13.5px;margin:0 0 16px}
+  /* Collection */
+  .coll-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  .catblock{background:var(--bg2);border:1px solid var(--line);border-radius:14px;margin-bottom:16px;overflow:hidden}
+  .cathead{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg3);border-bottom:1px solid var(--line);cursor:pointer}
+  .cathead h3{margin:0;font-size:15px;flex:1}
+  .cathead .ct{font-size:12px;color:var(--muted);background:var(--bg);padding:3px 9px;border-radius:20px;border:1px solid var(--line)}
+  .packgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;padding:14px 16px}
+  .packitem{display:flex;align-items:center;gap:11px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);transition:.12s;cursor:pointer}
+  .packitem:hover{border-color:var(--line2);background:var(--bg3)}
+  .packitem.owned{border-color:#2e5e36;background:linear-gradient(90deg,rgba(58,155,78,.13),var(--bg))}
+  .packitem .chk{width:20px;height:20px;border-radius:6px;border:2px solid var(--line2);flex:0 0 auto;display:grid;place-items:center;font-size:13px;color:#fff;transition:.12s}
+  .packitem.owned .chk{background:var(--good);border-color:var(--good)}
+  .packitem .pn{flex:1;min-width:0}
+  .packitem .pn b{display:block;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .packitem .pn span{font-size:11px;color:var(--muted2)}
+  .pill{font-size:10px;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:20px;font-weight:700;color:#fff;white-space:nowrap}
+  /* Cards & grids */
+  .filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:16px;background:var(--bg2);border:1px solid var(--line);padding:12px;border-radius:12px}
+  input[type=text],select{background:var(--bg);border:1px solid var(--line2);color:var(--txt);padding:8px 11px;border-radius:8px;font-size:13.5px;font-family:inherit}
+  input[type=text]{min-width:180px}
+  input[type=text]:focus,select:focus{outline:none;border-color:var(--accent)}
+  label.toggle{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);user-select:none;cursor:pointer;background:var(--bg);border:1px solid var(--line2);padding:7px 11px;border-radius:8px}
+  label.toggle input{accent-color:var(--accent);width:16px;height:16px}
+  .cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:13px}
+  .ccard{background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:.15s;cursor:pointer;position:relative;display:flex;flex-direction:column}
+  .ccard:hover{transform:translateY(-3px);border-color:var(--line2);box-shadow:var(--shadow)}
+  .ccard .imgwrap{aspect-ratio:.717;background:var(--bg3);position:relative;overflow:hidden;display:grid;place-items:center}
+  .ccard .imgwrap img{width:100%;height:100%;object-fit:cover;display:block}
+  .ccard .ph{padding:10px;text-align:center;color:var(--muted2);font-size:11px}
+  .ccard .meta{padding:8px 10px}
+  .ccard .meta b{font-size:12.5px;font-weight:600;display:block;line-height:1.25;max-height:2.5em;overflow:hidden}
+  .ccard .meta .sm{font-size:10.5px;color:var(--muted2);margin-top:3px;display:flex;justify-content:space-between;gap:6px}
+  .fbar{height:4px;width:100%}
+  .ccard .own-badge{position:absolute;top:6px;right:6px;background:rgba(58,155,78,.92);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+  .ccard .own-badge.no{background:rgba(90,100,115,.85)}
+  .ccard .qty-badge{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.8);color:#fff;font-size:11px;font-weight:800;padding:2px 7px;border-radius:20px;z-index:2}
+  .heroavatar{aspect-ratio:1;border-radius:50%;overflow:hidden;width:84px;height:84px;margin:0 auto;border:3px solid var(--line2);background:var(--bg3)}
+  .heroavatar img{width:100%;height:100%;object-fit:cover;object-position:top}
+  .herocard{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:16px 12px;text-align:center;cursor:pointer;transition:.15s}
+  .herocard:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--line2)}
+  .herocard b{display:block;margin-top:10px;font-size:14px}
+  .herocard span{font-size:11px;color:var(--muted2)}
+  .empty{text-align:center;padding:54px 20px;color:var(--muted)}
+  .empty .big{font-size:40px;margin-bottom:10px}
+  .loadmore{text-align:center;margin:24px 0}
+  /* Deck builder */
+  .db-grid{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
+  @media(max-width:980px){.db-grid{grid-template-columns:1fr}.deckside{position:static}}
+  .panel{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .panel h3{margin:0 0 12px;font-size:15px}
+  .aspect-row{display:flex;gap:8px;flex-wrap:wrap}
+  .aspect-btn{flex:1;min-width:84px;padding:10px;border-radius:10px;border:2px solid var(--line2);background:var(--bg);color:var(--txt);font-weight:700;font-size:13px;text-align:center;transition:.12s}
+  .aspect-btn:hover{border-color:#fff}
+  .aspect-btn.sel{color:#fff}
+  .deckside{position:sticky;top:84px}
+  .valbox{border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;border:1px solid}
+  .valbox.ok{background:rgba(58,155,78,.12);border-color:#2e5e36}
+  .valbox.no{background:rgba(226,67,60,.1);border-color:#6e2f2c}
+  .valbox ul{margin:8px 0 0;padding-left:18px}
+  .valbox li{margin:2px 0}
+  .deckcount{font-size:30px;font-weight:800;text-align:center;line-height:1}
+  .deckcount small{font-size:13px;color:var(--muted);font-weight:500}
+  .rowline{display:flex;align-items:center;gap:9px;padding:6px 8px;border-bottom:1px solid var(--line);font-size:13px}
+  .rowline:last-child{border-bottom:none}
+  .rowline .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rowline .cost{width:22px;height:22px;border-radius:50%;background:var(--bg3);display:grid;place-items:center;font-size:11px;font-weight:700;flex:0 0 auto}
+  .stepper{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line2);border-radius:7px;overflow:hidden;flex:0 0 auto}
+  .stepper button{background:var(--bg3);border:none;color:var(--txt);width:24px;height:24px;font-size:15px;font-weight:700;line-height:1}
+  .stepper button:hover{background:var(--accent)}
+  .stepper button:disabled{opacity:.3;cursor:not-allowed}
+  .stepper .n{width:26px;text-align:center;font-weight:700;font-size:12.5px}
+  .deck-cards-list{max-height:320px;overflow:auto}
+  .secthead{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:12px 0 4px;font-weight:700}
+  .poolwrap{max-height:560px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(4,6,10,.82);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)}
+  .modal.show{display:flex}
+  #hmodal{z-index:96}
+  .modalbox{background:var(--bg2);border:1px solid var(--line2);border-radius:16px;max-width:760px;width:100%;max-height:90vh;overflow:auto;box-shadow:var(--shadow)}
+  .modalbox .mhead{display:flex;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg2);align-items:center}
+  .modalbox .mhead h3{margin:0;flex:1;font-size:18px}
+  .mbody{padding:18px;display:grid;grid-template-columns:230px 1fr;gap:18px}
+  @media(max-width:620px){.mbody{grid-template-columns:1fr}}
+  .mbody img.cardimg{width:100%;border-radius:10px;border:1px solid var(--line)}
+  .kv{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+  .kv .tag{background:var(--bg3);border:1px solid var(--line);border-radius:7px;padding:3px 9px;font-size:12px}
+  .ctext{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13.5px;line-height:1.5}
+  .ctext b{color:#fff}.ctext i{color:var(--muted)}
+  .closeX{background:var(--bg3);border:1px solid var(--line2);width:32px;height:32px;border-radius:8px;color:var(--txt);font-size:18px}
+  /* toast + loader */
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--line2);padding:11px 18px;border-radius:10px;font-size:13.5px;box-shadow:var(--shadow);opacity:0;transition:.25s;z-index:200;pointer-events:none}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #loader{position:fixed;inset:0;background:rgba(8,10,14,.9);z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+  #loader.show{display:flex}
+  .spinner{width:46px;height:46px;border:4px solid var(--line2);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .pbar{width:280px;height:8px;background:var(--bg3);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+  .pbar > div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));transition:width .2s}
+  .muted{color:var(--muted)}
+  .scrim{font-size:12.5px;color:var(--muted);max-width:340px;text-align:center}
+  .notice{background:var(--bg2);border:1px dashed var(--line2);border-radius:12px;padding:16px;color:var(--muted);font-size:13.5px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .savedeck{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+  .savedeck .nm{flex:1}
+  .res{display:inline-flex;gap:2px;vertical-align:middle}
+  .res i{width:11px;height:11px;border-radius:50%;display:inline-block}
+  .r-phys{background:#c94a3f}.r-ment{background:#3f7fc9}.r-ener{background:#e0a83a}.r-wild{background:#3fa34d}
+  .chart{margin-bottom:14px}
+  .chart-t{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;margin-bottom:6px}
+  .bar-row{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12px}
+  .bar-l{width:62px;flex:0 0 auto;color:var(--muted);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar-track{flex:1;height:14px;background:var(--bg3);border-radius:4px;overflow:hidden}
+  .bar-fill{display:block;height:100%;border-radius:4px;min-width:3px;transition:width .3s}
+  .bar-v{width:20px;flex:0 0 auto;text-align:right;font-weight:700;font-size:11.5px}
+  .sig-star{color:var(--gold)}
+  .db-pool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(106px,1fr));gap:9px;padding:8px 10px 12px}
+  .poolcard{background:var(--bg2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .poolcard .imgwrap{aspect-ratio:.717;background:var(--bg3);position:relative;cursor:pointer;display:grid;place-items:center}
+  .poolcard .imgwrap img{width:100%;height:100%;object-fit:cover;display:block}
+  .poolcard .imgwrap .ph{padding:8px;font-size:10px;color:var(--muted2);text-align:center}
+  .poolcard .cost-badge{position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.78);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
+  .poolcard .indeck-badge{position:absolute;top:4px;right:4px;min-width:20px;height:20px;border-radius:11px;background:var(--accent);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;padding:0 5px}
+  .poolcard .pf{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:4px 6px}
+  code.k{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px}
+  /* ---------- phones / small tablets ---------- */
+  @media(max-width:640px){
+    .wrap{padding:0 11px 64px}
+    header.top{position:static}
+    .topbar{flex-direction:column;align-items:stretch;gap:9px;padding:10px 12px}
+    .brand{margin:0}
+    .brand .logo{width:34px;height:34px;font-size:17px}
+    .brand h1{font-size:16px}
+    .stats{gap:6px}
+    .stat{flex:1;min-width:0;padding:5px 2px}
+    .stat b{font-size:15px}
+    .stat span{font-size:9px;letter-spacing:.3px}
+    .tools{flex-wrap:wrap;gap:6px}
+    .tools .btn{flex:1;justify-content:center;min-width:88px}
+    nav.tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:14px -11px 16px;padding:0 11px}
+    nav.tabs::-webkit-scrollbar{display:none}
+    nav.tabs button{flex:0 0 auto;white-space:nowrap;padding:10px 12px;font-size:13.5px}
+    h2.title{font-size:18px}
+    .lead{font-size:13px}
+    .filters{padding:10px;gap:7px}
+    .filters input[type=text]{flex:1 1 100%;min-width:0}
+    .filters select{flex:1 1 42%;min-width:0}
+    .filters label.toggle{flex:1 1 100%;justify-content:flex-start}
+    .coll-controls{gap:8px}
+    .coll-controls input[type=text]{flex:1 1 100%}
+    .packgrid{grid-template-columns:1fr}
+    .panel{padding:13px}
+    .aspect-btn{min-width:64px;padding:9px 5px;font-size:12px}
+    .stepper button{width:30px;height:30px;font-size:17px}
+    .poolcard .stepper button{width:26px;height:26px;font-size:15px}
+    .modal{padding:9px}
+    .modalbox{max-height:93vh}
+    .modalbox .mhead{padding:12px 14px}
+    .modalbox .mhead h3{font-size:16px}
+    .mbody{padding:14px;gap:14px}
+  }
+</style>
+</head>
+<body>
+<div id="loader">
+  <div class="spinner"></div>
+  <div id="loadtxt" class="scrim">Loading…</div>
+  <div class="pbar"><div id="pbar"></div></div>
+</div>
+
+<header class="top">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">M</div>
+      <div>
+        <h1>Marvel Champions</h1>
+        <div class="sub">Collection &amp; Deck Builder</div>
+      </div>
+    </div>
+    <div class="stats" id="stats">
+      <div class="stat"><b id="st-prod">0</b><span>Products</span></div>
+      <div class="stat"><b id="st-cards">0</b><span>Cards</span></div>
+      <div class="stat"><b id="st-heroes">0</b><span>Heroes</span></div>
+      <div class="stat"><b id="st-decks">0</b><span>Decks</span></div>
+    </div>
+    <div class="tools">
+      <button class="btn sm" id="btn-refresh" title="Download / update card data from MarvelCDB">↻ Update data</button>
+      <button class="btn sm ghost" id="btn-export">⭳ Backup</button>
+      <button class="btn sm ghost" id="btn-import">⭱ Restore</button>
+      <input type="file" id="file-import" accept="application/json" style="display:none">
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="tabs" id="tabs">
+    <button data-tab="collection" class="active">📦 Collection</button>
+    <button data-tab="heroes">🦸 Heroes</button>
+    <button data-tab="villains">💀 Villains</button>
+    <button data-tab="modular">🧩 Modular Sets</button>
+    <button data-tab="cards">🃏 Cards</button>
+    <button data-tab="deck">⚒️ Deck Builder</button>
+    <button data-tab="help">❓ Help</button>
+  </nav>
+
+  <!-- COLLECTION -->
+  <section class="tab active" id="tab-collection">
+    <h2 class="title">My Collection</h2>
+    <p class="lead">Check the products you own. Everything else in the app — heroes, cards, and the deck builder — is filtered to what you have. Saved automatically on this computer.</p>
+    <div class="coll-controls">
+      <input type="text" id="coll-search" placeholder="Search a product…">
+      <button class="btn sm" id="coll-all">Select all</button>
+      <button class="btn sm" id="coll-none">Clear all</button>
+    </div>
+    <div id="coll-list"></div>
+  </section>
+
+  <!-- HEROES -->
+  <section class="tab" id="tab-heroes">
+    <h2 class="title">Heroes</h2>
+    <p class="lead">The heroes you can play with your collection.</p>
+    <div class="filters">
+      <input type="text" id="hero-search" placeholder="Search hero…">
+      <label class="toggle"><input type="checkbox" id="hero-owned" checked> Only what I own</label>
+    </div>
+    <div id="hero-list" class="cardgrid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))"></div>
+  </section>
+
+  <!-- VILLAINS -->
+  <section class="tab" id="tab-villains">
+    <h2 class="title">Villains &amp; Scenarios</h2>
+    <p class="lead">The scenarios you can play, grouped by villain. Each group is the full encounter set for that fight.</p>
+    <div class="filters">
+      <input type="text" id="vil-search" placeholder="Search villain / scenario…">
+      <label class="toggle"><input type="checkbox" id="vil-nemesis"> Include hero nemesis sets</label>
+      <label class="toggle"><input type="checkbox" id="vil-owned" checked> Only what I own</label>
+    </div>
+    <div id="vil-list"></div>
+  </section>
+
+  <!-- MODULAR -->
+  <section class="tab" id="tab-modular">
+    <h2 class="title">Modular Encounter Sets</h2>
+    <p class="lead">Reusable modules you can drop into almost any scenario to change it up (e.g. Bomb Scare, Legions of Hydra). Grouped by set.</p>
+    <div class="filters">
+      <input type="text" id="mod-search" placeholder="Search modular set…">
+      <select id="mod-type">
+        <option value="modular">Modular sets</option>
+        <option value="standard">Standard set</option>
+        <option value="expert">Expert set</option>
+        <option value="evidence">Evidence sets</option>
+        <option value="leader">Leader sets</option>
+      </select>
+      <label class="toggle"><input type="checkbox" id="mod-owned" checked> Only what I own</label>
+    </div>
+    <div id="mod-list"></div>
+  </section>
+
+  <!-- CARDS -->
+  <section class="tab" id="tab-cards">
+    <h2 class="title">Card Browser</h2>
+    <p class="lead">Browse every card. Images come from MarvelCDB when you're online.</p>
+    <div class="filters">
+      <input type="text" id="card-search" placeholder="Search name / text / trait…">
+      <select id="card-faction">
+        <option value="">All aspects</option>
+        <option value="hero">Hero (signature)</option>
+        <option value="aggression">Aggression</option>
+        <option value="justice">Justice</option>
+        <option value="leadership">Leadership</option>
+        <option value="protection">Protection</option>
+        <option value="basic">Basic</option>
+        <option value="pool">Pool</option>
+        <option value="encounter">Encounter</option>
+      </select>
+      <select id="card-type">
+        <option value="">All types</option>
+        <option value="ally">Ally</option>
+        <option value="event">Event</option>
+        <option value="upgrade">Upgrade</option>
+        <option value="support">Support</option>
+        <option value="resource">Resource</option>
+        <option value="hero">Hero</option>
+        <option value="alter_ego">Alter-Ego</option>
+        <option value="villain">Villain</option>
+        <option value="minion">Minion</option>
+        <option value="main_scheme">Main scheme</option>
+        <option value="side_scheme">Side scheme</option>
+        <option value="treachery">Treachery</option>
+        <option value="attachment">Attachment</option>
+        <option value="environment">Environment</option>
+        <option value="obligation">Obligation</option>
+      </select>
+      <select id="card-pack"><option value="">All products</option></select>
+      <label class="toggle"><input type="checkbox" id="card-owned"> Only what I own</label>
+    </div>
+    <div id="card-count" class="lead" style="margin-bottom:10px"></div>
+    <div id="card-list" class="cardgrid"></div>
+    <div class="loadmore"><button class="btn" id="card-more" style="display:none">Show more</button></div>
+  </section>
+
+  <!-- DECK BUILDER -->
+  <section class="tab" id="tab-deck">
+    <h2 class="title">Deck Builder</h2>
+    <p class="lead">Pick a hero and an aspect, then add cards from your collection. The app checks the deck-building rules for you.</p>
+    <div class="db-grid">
+      <div>
+        <div class="panel" style="margin-bottom:16px">
+          <h3>Use a MarvelCDB deck as a base</h3>
+          <p class="lead" style="margin:0 0 10px">Paste a deck link (or just its ID) from marvelcdb.com. I'll load it here and tell you exactly which cards you're missing — and which product to get them from.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input type="text" id="imp-url" placeholder="https://marvelcdb.com/decklist/view/…  or an ID like 100" style="flex:1;min-width:200px">
+            <button class="btn primary" id="imp-go">Import &amp; check</button>
+          </div>
+          <div id="imp-status" class="lead" style="margin:8px 0 0"></div>
+        </div>
+        <div class="panel" style="margin-bottom:16px">
+          <h3>1 · Hero</h3>
+          <div class="filters" style="margin:0 0 12px;background:none;border:none;padding:0">
+            <select id="db-hero" style="min-width:240px"></select>
+            <label class="toggle"><input type="checkbox" id="db-hero-owned" checked> Only owned heroes</label>
+          </div>
+          <h3>2 · Aspect</h3>
+          <div class="aspect-row" id="db-aspects"></div>
+          <div id="db-aspect-note" class="lead" style="margin:8px 0 0"></div>
+        </div>
+        <div class="panel">
+          <h3>3 · Add cards <span class="muted" style="font-weight:400;font-size:12px">(from your collection)</span></h3>
+          <div class="filters" style="margin:0 0 12px;background:none;border:none;padding:0">
+            <input type="text" id="db-pool-search" placeholder="Search cards…">
+            <select id="db-pool-type">
+              <option value="">All types</option>
+              <option value="ally">Ally</option><option value="event">Event</option>
+              <option value="upgrade">Upgrade</option><option value="support">Support</option>
+              <option value="resource">Resource</option>
+            </select>
+            <select id="db-pool-sort">
+              <option value="cost">Sort: Cost</option>
+              <option value="name">Sort: Name</option>
+            </select>
+          </div>
+          <div class="poolwrap" id="db-pool"></div>
+        </div>
+      </div>
+      <div class="deckside">
+        <div class="panel">
+          <div class="deckcount"><span id="db-count">0</span><small>/40 min</small></div>
+          <div id="db-validation"></div>
+          <div style="display:flex;gap:7px;margin:12px 0">
+            <input type="text" id="db-name" placeholder="Deck name" style="flex:1">
+            <button class="btn sm primary" id="db-save">Save</button>
+          </div>
+          <div style="display:flex;gap:7px;margin-bottom:6px">
+            <button class="btn sm ghost" id="db-new">New</button>
+            <button class="btn sm ghost" id="db-export">Export text</button>
+            <button class="btn sm ghost" id="db-clear">Clear cards</button>
+          </div>
+          <div class="deck-cards-list" id="db-decklist"></div>
+        </div>
+        <div class="panel" style="margin-top:14px">
+          <h3>Deck stats</h3>
+          <div id="db-stats"></div>
+        </div>
+        <div class="panel" style="margin-top:14px">
+          <h3>Saved decks</h3>
+          <div id="db-saved"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HELP -->
+  <section class="tab" id="tab-help">
+    <h2 class="title">How it works</h2>
+    <div class="notice" style="margin-bottom:14px">
+      <b>Quick start:</b> Go to <b>Collection</b> and check the boxes for the products you own (Core Set, hero packs, big boxes…). Then the Heroes, Cards, and Deck Builder tabs only show what you actually have.
+    </div>
+    <h3 style="margin:18px 0 6px">Where the data comes from</h3>
+    <p class="lead" style="margin:0">Card data is the open <a href="https://marvelcdb.com/" target="_blank" rel="noopener">MarvelCDB</a> dataset. The first time you open the app (and whenever you press <code class="k">↻ Update data</code>) it downloads the latest cards — so when a new expansion is released, just press Update and the new product appears in your Collection automatically. Card images load from MarvelCDB when you're online.</p>
+    <h3 style="margin:18px 0 6px">Internet &amp; offline</h3>
+    <p class="lead" style="margin:0">You need internet the first time (to download the card database and the SQLite engine) and when you press Update. After that, your data is stored on this computer and the app keeps working offline — though card <i>images</i> need a connection.</p>
+    <h3 style="margin:18px 0 6px">Your data is yours</h3>
+    <p class="lead" style="margin:0">Your collection and decks are saved locally in this browser. Use <code class="k">⭳ Backup</code> to save a JSON file (keep it safe / move it between computers) and <code class="k">⭱ Restore</code> to load it back. The whole card database is real SQLite — you can also export it from here:</p>
+    <p style="margin:10px 0 0"><button class="btn sm" id="btn-export-db">⭳ Export SQLite database (.db)</button></p>
+    <h3 style="margin:18px 0 6px">Deck-building rules checked</h3>
+    <p class="lead" style="margin:0">A legal deck = your hero's signature cards (added automatically) + cards from <b>one</b> aspect + Basic cards, at least <b>40 cards</b> total, respecting each card's copy limit and how many copies you own. Most decks run 40–50 cards. Deadpool and a few special heroes work differently — the app will still let you build, but double-check those manually.</p>
+  </section>
+</div>
+
+<!-- card modal -->
+<div class="modal" id="modal">
+  <div class="modalbox">
+    <div class="mhead">
+      <h3 id="m-name">Card</h3>
+      <button class="closeX" id="m-close">✕</button>
+    </div>
+    <div class="mbody">
+      <div>
+        <div class="imgwrap" style="aspect-ratio:.717;border-radius:10px;overflow:hidden;background:var(--bg3)">
+          <img id="m-img" class="cardimg" alt="" style="width:100%">
+        </div>
+        <div id="m-own" style="margin-top:10px;text-align:center;font-size:13px"></div>
+      </div>
+      <div>
+        <div class="kv" id="m-kv"></div>
+        <div class="ctext" id="m-text"></div>
+        <div id="m-flavor" class="lead" style="margin-top:10px;font-style:italic"></div>
+        <div id="m-packs" style="margin-top:12px;font-size:12.5px;color:var(--muted)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- hero detail modal -->
+<div class="modal" id="hmodal">
+  <div class="modalbox" style="max-width:920px">
+    <div class="mhead"><h3 id="hm-title">Hero</h3><button class="closeX" id="hm-close">✕</button></div>
+    <div style="padding:16px 18px" id="hm-body"></div>
+  </div>
+</div>
+
+<!-- import / missing-cards report modal -->
+<div class="modal" id="modal2">
+  <div class="modalbox" style="max-width:640px">
+    <div class="mhead"><h3 id="m2-title">Deck check</h3><button class="closeX" id="m2-close">✕</button></div>
+    <div style="padding:18px" id="m2-body"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/sql-wasm.js"></script>
+<script>
+"use strict";
+/* ============================================================
+   Marvel Champions — Collection & Deck Builder
+   Data: marvelsdb-json-data (MarvelCDB) via jsDelivr (CORS-safe)
+   Engine: SQLite in the browser (sql.js / WASM)
+   ============================================================ */
+
+const DATA_BASE = "https://cdn.jsdelivr.net/gh/zzorba/marvelsdb-json-data@master"; // player cards + packs (CORS-safe, fallback)
+const DATA_API  = "https://marvelcdb.com/api/public/cards/"; // COMPLETE data incl. villains/encounters/set-types
+const CORS_PROXY = u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`; // used only if the API blocks CORS
+const IMG_BASE  = "https://marvelcdb.com/bundles/cards/";
+
+/* Products embedded so the Collection tab works instantly & offline.
+   "Update data" re-fetches the live list and merges any newer products. */
+let PACKS = [
+ {code:"core",name:"Core Set",date:"2019-11-01",type:"core"},
+ {code:"gob",name:"The Green Goblin",date:"2019-12-20",type:"scenario"},
+ {code:"cap",name:"Captain America",date:"2019-12-20",type:"hero"},
+ {code:"msm",name:"Ms. Marvel",date:"2019-12-20",type:"hero"},
+ {code:"twc",name:"The Wrecking Crew",date:"2020-02-07",type:"scenario"},
+ {code:"thor",name:"Thor",date:"2020-03-06",type:"hero"},
+ {code:"bkw",name:"Black Widow",date:"2020-05-06",type:"hero"},
+ {code:"drs",name:"Doctor Strange",date:"2020-06-06",type:"hero"},
+ {code:"ron",name:"Ronan Modular Set",date:"2020-08-02",type:"encounter"},
+ {code:"hlk",name:"Hulk",date:"2020-08-07",type:"hero"},
+ {code:"trors",name:"The Rise of Red Skull",date:"2020-09-04",type:"story"},
+ {code:"toafk",name:"The Once and Future Kang",date:"2020-10-02",type:"scenario"},
+ {code:"ant",name:"Ant-Man",date:"2020-11-06",type:"hero"},
+ {code:"wsp",name:"Wasp",date:"2021-01-22",type:"hero"},
+ {code:"qsv",name:"Quicksilver",date:"2021-02-05",type:"hero"},
+ {code:"scw",name:"Scarlet Witch",date:"2021-03-05",type:"hero"},
+ {code:"gmw",name:"The Galaxy's Most Wanted",date:"2021-04-02",type:"story"},
+ {code:"stld",name:"Star-Lord",date:"2021-05-14",type:"hero"},
+ {code:"gam",name:"Gamora",date:"2021-05-14",type:"hero"},
+ {code:"drax",name:"Drax",date:"2021-06-18",type:"hero"},
+ {code:"vnm",name:"Venom",date:"2021-07-16",type:"hero"},
+ {code:"mts",name:"The Mad Titan's Shadow",date:"2021-09-01",type:"story"},
+ {code:"nebu",name:"Nebula",date:"2021-09-17",type:"hero"},
+ {code:"warm",name:"War Machine",date:"2021-11-05",type:"hero"},
+ {code:"hood",name:"The Hood",date:"2021-11-26",type:"scenario"},
+ {code:"valk",name:"Valkyrie",date:"2021-11-26",type:"hero"},
+ {code:"vision",name:"Vision",date:"2022-01-14",type:"hero"},
+ {code:"sm",name:"Sinister Motives",date:"2022-04-08",type:"story"},
+ {code:"nova",name:"Nova",date:"2022-05-20",type:"hero"},
+ {code:"ironheart",name:"Ironheart",date:"2022-05-20",type:"hero"},
+ {code:"spiderham",name:"Spider-Ham",date:"2022-07-15",type:"hero"},
+ {code:"spdr",name:"SP//dr",date:"2022-07-15",type:"hero"},
+ {code:"mut_gen",name:"Mutant Genesis",date:"2022-09-30",type:"story"},
+ {code:"cyclops",name:"Cyclops",date:"2022-09-30",type:"hero"},
+ {code:"phoenix",name:"Phoenix",date:"2022-09-30",type:"hero"},
+ {code:"wolv",name:"Wolverine",date:"2022-11-11",type:"hero"},
+ {code:"storm",name:"Storm",date:"2022-11-11",type:"hero"},
+ {code:"mojo",name:"Mojo Mania",date:"2022-11-11",type:"scenario"},
+ {code:"gambit",name:"Gambit",date:"2023-02-24",type:"hero"},
+ {code:"rogue",name:"Rogue",date:"2023-02-24",type:"hero"},
+ {code:"next_evol",name:"NeXt Evolution",date:"2023-08-18",type:"story"},
+ {code:"psylocke",name:"Psylocke",date:"2023-09-22",type:"hero"},
+ {code:"angel",name:"Angel",date:"2023-09-22",type:"hero"},
+ {code:"x23",name:"X-23",date:"2023-11-17",type:"hero"},
+ {code:"deadpool",name:"Deadpool",date:"2023-11-17",type:"hero"},
+ {code:"aoa",name:"Age of Apocalypse",date:"2024-03-29",type:"story"},
+ {code:"iceman",name:"Iceman",date:"2024-05-17",type:"hero"},
+ {code:"jubilee",name:"Jubilee",date:"2024-07-19",type:"hero"},
+ {code:"ncrawler",name:"Nightcrawler",date:"2024-09-20",type:"hero"},
+ {code:"magneto",name:"Magneto",date:"2024-11-15",type:"hero"},
+ {code:"aos",name:"Agents of S.H.I.E.L.D.",date:"2025-02-20",type:"story"},
+ {code:"bp",name:"Black Panther",date:"2025-04-18",type:"hero"},
+ {code:"silk",name:"Silk",date:"2025-04-18",type:"hero"},
+ {code:"falcon",name:"Falcon",date:"2025-06-20",type:"hero"},
+ {code:"winter",name:"Winter Soldier",date:"2025-06-20",type:"hero"},
+ {code:"tt",name:"Trickster Takeover",date:"2025-08-15",type:"scenario"},
+ {code:"cw",name:"Civil War",date:"2025-10-17",type:"story"},
+ {code:"synthezoid",name:"Synthezoid Smackdown",date:"2025-12-05",type:"scenario"},
+ {code:"wonder_man",name:"Wonder Man",date:"2026-02-20",type:"hero"},
+ {code:"hercules",name:"Hercules",date:"2026-02-20",type:"hero"}
+];
+
+const TYPE_GROUPS = {
+  core:   {label:"Core Set", order:1},
+  hero:   {label:"Hero Packs", order:2},
+  story:  {label:"Campaign Boxes", order:3},
+  scenario:{label:"Scenario Packs", order:4},
+  campaign:{label:"Campaign Expansions", order:3},
+  encounter:{label:"Modular Encounter Sets", order:5}
+};
+const FACTION = {
+  hero:{n:"Hero",c:"var(--hero)"}, aggression:{n:"Aggression",c:"var(--aggression)"},
+  justice:{n:"Justice",c:"var(--justice)"}, leadership:{n:"Leadership",c:"var(--leadership)"},
+  protection:{n:"Protection",c:"var(--protection)"}, basic:{n:"Basic",c:"var(--basic)"},
+  pool:{n:"Pool",c:"var(--pool)"}, encounter:{n:"Encounter",c:"var(--encounter)"}
+};
+const SET_TYPE = {
+  villain:{n:"Villain / Scenario",c:"#b51d22"}, nemesis:{n:"Hero Nemesis",c:"#7a3b8f"},
+  modular:{n:"Modular",c:"#b06a2b"}, main_scheme:{n:"Main Scheme",c:"#7a1518"},
+  standard:{n:"Standard",c:"#5a6473"}, expert:{n:"Expert",c:"#444c59"},
+  evidence:{n:"Evidence",c:"#3a6b8f"}, leader:{n:"Leader",c:"#8f6b3a"}, hero_special:{n:"Hero Special",c:"#2f6fb0"}
+};
+const TYPE_NAME = {hero:"Hero",alter_ego:"Alter-Ego",ally:"Ally",event:"Event",upgrade:"Upgrade",
+  support:"Support",resource:"Resource",villain:"Villain",minion:"Minion",main_scheme:"Main Scheme",
+  side_scheme:"Side Scheme",player_side_scheme:"Player Side Scheme",treachery:"Treachery",
+  attachment:"Attachment",environment:"Environment",obligation:"Obligation"};
+const DECK_TYPES = ["ally","event","upgrade","support","resource","player_side_scheme"];
+const ASPECTS = ["aggression","justice","leadership","protection","pool"];
+const PLAYER_FACTIONS = ["hero","aggression","justice","leadership","protection","basic","pool"];
+
+/* ---------- state ---------- */
+let SQLLIB=null, db=null, dataReady=false, srcMode="api", encountersAvailable=false;
+let owned = new Set(JSON.parse(localStorage.getItem("mc_owned")||"[]"));
+let decks = JSON.parse(localStorage.getItem("mc_decks")||"[]");
+let curDeck = null; // {name, heroCode, setCode, aspect, cards:{code:n}}
+let dbView = null;  // deck-builder pool view: an aspect (shows that aspect) or 'basic'
+
+/* ---------- tiny helpers ---------- */
+const $ = s=>document.querySelector(s);
+const $$ = s=>Array.from(document.querySelectorAll(s));
+const esc = s=> (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2200);}
+function loader(on,txt){const l=$("#loader");if(txt)$("#loadtxt").textContent=txt;l.classList.toggle("show",!!on);}
+function prog(p){$("#pbar").style.width=Math.round(p*100)+"%";}
+function imgUrl(code){return IMG_BASE+code+".png";}
+function packName(code){const p=PACKS.find(x=>x.code===code);return p?p.name:code;}
+
+/* rich card text -> html (icons as words in brackets already; just keep <b><i>) */
+function richText(t){
+  if(!t) return "";
+  let s=esc(t);
+  s=s.replace(/&lt;(\/?)(b|i|em|strong)&gt;/g,"<$1$2>");
+  s=s.replace(/\[\[([^\]]+)\]\]/g,'<b>$1</b>');     // traits
+  s=s.replace(/\[([a-z_]+)\]/g,'<b>·$1·</b>');       // resource icons
+  s=s.replace(/\n/g,"<br>");
+  return s;
+}
+function resPips(c){
+  let h="";const m=[["res_phys","r-phys"],["res_ment","r-ment"],["res_ener","r-ener"],["res_wild","r-wild"]];
+  for(const[k,cl]of m){for(let i=0;i<(c[k]||0);i++)h+=`<i class="${cl}"></i>`;}
+  return h?`<span class="res">${h}</span>`:"";
+}
+
+/* ---------- IndexedDB (cache compiled SQLite db bytes) ---------- */
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open("mc_db",1);
+  r.onupgradeneeded=()=>r.result.createObjectStore("kv");
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function idbGet(k){try{const d=await idb();return await new Promise((res,rej)=>{const t=d.transaction("kv").objectStore("kv").get(k);t.onsuccess=()=>res(t.result);t.onerror=()=>rej(t.error);});}catch(e){return null;}}
+async function idbPut(k,v){try{const d=await idb();return await new Promise((res,rej)=>{const t=d.transaction("kv","readwrite").objectStore("kv").put(v,k);t.onsuccess=()=>res();t.onerror=()=>rej(t.error);});}catch(e){}}
+
+/* ---------- SQLite ---------- */
+async function initSql(){
+  if(SQLLIB) return SQLLIB;
+  if(typeof initSqlJs==="undefined") throw new Error("SQL engine failed to load (need internet on first run).");
+  SQLLIB=await initSqlJs({locateFile:f=>`https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/${f}`});
+  return SQLLIB;
+}
+function q(sql,params=[]){const s=db.prepare(sql);s.bind(params);const o=[];while(s.step())o.push(s.getAsObject());s.free();return o;}
+function q1(sql,params=[]){const r=q(sql,params);return r[0]||null;}
+
+function createSchema(){
+  db.exec(`
+    CREATE TABLE packs(code TEXT PRIMARY KEY,name TEXT,date TEXT,type TEXT,position INTEGER);
+    CREATE TABLE cards(code TEXT PRIMARY KEY,name TEXT,subname TEXT,type_code TEXT,type_name TEXT,
+      faction_code TEXT,faction_name TEXT,set_code TEXT,set_name TEXT,set_type TEXT,
+      cost INTEGER,deck_limit INTEGER,is_unique INTEGER,traits TEXT,text TEXT,flavor TEXT,
+      attack INTEGER,thwart INTEGER,defense INTEGER,health INTEGER,hand_size INTEGER,recover INTEGER,
+      scheme INTEGER,boost INTEGER,res_phys INTEGER,res_ment INTEGER,res_ener INTEGER,res_wild INTEGER,
+      back_link TEXT,double_sided INTEGER,home_pack TEXT,position INTEGER);
+    CREATE TABLE printings(card_code TEXT,pack_code TEXT,quantity INTEGER);
+    CREATE TABLE owned_packs(pack_code TEXT PRIMARY KEY);
+    CREATE INDEX i_cards_type ON cards(type_code);
+    CREATE INDEX i_cards_fac ON cards(faction_code);
+    CREATE INDEX i_cards_set ON cards(set_code);
+    CREATE INDEX i_cards_settype ON cards(set_type);
+    CREATE INDEX i_pr_card ON printings(card_code);
+    CREATE INDEX i_pr_pack ON printings(pack_code);
+  `);
+}
+
+async function fetchPackList(){
+  try{
+    const r=await fetch(DATA_BASE+"/packs.json",{cache:"no-store"});
+    if(!r.ok) throw 0;
+    const list=await r.json();
+    const map=new Map(PACKS.map(p=>[p.code,p]));
+    list.forEach(p=>{map.set(p.code,{code:p.code,name:p.name,date:p.date_release,type:p.pack_type_code});});
+    PACKS=Array.from(map.values()).sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+    return true;
+  }catch(e){return false;}
+}
+
+async function chooseSource(){
+  // The MarvelCDB API has the COMPLETE data (incl. villains/encounters). Try it directly,
+  // then via a CORS proxy, then fall back to jsDelivr (player cards only).
+  const test=DATA_API+"ron.json";
+  try{const r=await fetch(test,{cache:"no-store"});if(r.ok){const j=await r.json();if(Array.isArray(j)&&j.length){srcMode="api";return u=>u;}}}catch(e){}
+  try{const r=await fetch(CORS_PROXY(test),{cache:"no-store"});if(r.ok){const j=await r.json();if(Array.isArray(j)&&j.length){srcMode="api";return CORS_PROXY;}}}catch(e){}
+  srcMode="raw";return null;
+}
+function packUrl(code,wrap){return srcMode==="api"?wrap(DATA_API+code+".json"):`${DATA_BASE}/pack/${code}.json`;}
+function normCard(c){ // accepts both MarvelCDB API and jsDelivr raw schemas
+  return {
+    code:c.code, name:c.name, subname:c.subname||null,
+    type_code:c.type_code||"", type_name:c.type_name||TYPE_NAME[c.type_code]||c.type_code||"",
+    faction_code:c.faction_code||"", faction_name:c.faction_name||(FACTION[c.faction_code]?FACTION[c.faction_code].n:(c.faction_code||"")),
+    set_code:c.card_set_code||c.set_code||null, set_name:c.card_set_name||null, set_type:c.card_set_type_name_code||null,
+    cost:(c.cost===undefined?null:c.cost), deck_limit:c.deck_limit||1, is_unique:c.is_unique?1:0,
+    traits:c.traits||"", text:c.text||"", flavor:c.flavor||"",
+    attack:c.attack??null, thwart:c.thwart??null, defense:c.defense??null, health:c.health??null,
+    hand_size:c.hand_size??null, recover:c.recover??null, scheme:c.scheme??null, boost:c.boost??null,
+    res_phys:c.resource_physical||0, res_ment:c.resource_mental||0, res_ener:c.resource_energy||0, res_wild:c.resource_wild||0,
+    back_link:c.back_link||null, double_sided:c.double_sided?1:0
+  };
+}
+function detectEncounters(){try{encountersAvailable=!!q1("SELECT 1 FROM cards WHERE faction_code='encounter' LIMIT 1");}catch(e){encountersAvailable=false;}}
+async function buildDatabase(onProgress){
+  db=new SQLLIB.Database();
+  createSchema();
+  let ins=db.prepare("INSERT INTO packs VALUES(?,?,?,?,?)");
+  PACKS.forEach((p,i)=>ins.run([p.code,p.name,p.date||"",p.type||"",i]));ins.free();
+
+  const wrap=await chooseSource();
+  const codes=PACKS.map(p=>p.code);
+  const results=new Array(codes.length);
+  let done=0, idx=0, CONC=(srcMode==="api"&&wrap)?5:8; // gentler when proxied
+  async function worker(){
+    while(idx<codes.length){
+      const my=idx++; const code=codes[my];
+      try{const r=await fetch(packUrl(code,wrap),{cache:"no-store"});results[my]=r.ok?await r.json():[];}
+      catch(e){results[my]=[];}
+      done++; if(onProgress)onProgress(done/codes.length);
+    }
+  }
+  await Promise.all(Array.from({length:CONC},worker));
+
+  db.run("BEGIN");
+  const ic=db.prepare(`INSERT OR IGNORE INTO cards VALUES(@code,@name,@subname,@type_code,@type_name,
+      @faction_code,@faction_name,@set_code,@set_name,@set_type,@cost,@deck_limit,@is_unique,@traits,@text,@flavor,
+      @attack,@thwart,@defense,@health,@hand_size,@recover,@scheme,@boost,@res_phys,@res_ment,@res_ener,@res_wild,
+      @back_link,@double_sided,@home_pack,@position)`);
+  const ip=db.prepare("INSERT INTO printings VALUES(?,?,?)");
+  results.forEach((arr,i)=>{
+    const packCode=codes[i];
+    (arr||[]).forEach(raw=>{
+      const qty=raw.quantity||1;
+      // A reprint of an existing card → record it as another printing of that card, not a new card.
+      // jsDelivr uses "duplicate_of"; the MarvelCDB API uses "duplicate_of_code".
+      const dup=raw.duplicate_of||raw.duplicate_of_code;
+      if(dup){ ip.run([dup,packCode,qty]); return; }
+      if(!raw.name) return;
+      const c=normCard(raw);
+      ic.run({"@code":c.code,"@name":c.name,"@subname":c.subname,"@type_code":c.type_code,"@type_name":c.type_name,
+        "@faction_code":c.faction_code,"@faction_name":c.faction_name,"@set_code":c.set_code,"@set_name":c.set_name,"@set_type":c.set_type,
+        "@cost":c.cost,"@deck_limit":c.deck_limit,"@is_unique":c.is_unique,"@traits":c.traits,"@text":c.text,"@flavor":c.flavor,
+        "@attack":c.attack,"@thwart":c.thwart,"@defense":c.defense,"@health":c.health,"@hand_size":c.hand_size,"@recover":c.recover,
+        "@scheme":c.scheme,"@boost":c.boost,"@res_phys":c.res_phys,"@res_ment":c.res_ment,"@res_ener":c.res_ener,"@res_wild":c.res_wild,
+        "@back_link":c.back_link,"@double_sided":c.double_sided,"@home_pack":packCode,"@position":raw.position||0});
+      ip.run([c.code,packCode,qty]);
+    });
+  });
+  ic.free();ip.free();db.run("COMMIT");
+  detectEncounters();
+  applyOwned();
+}
+
+function applyOwned(){
+  if(!db)return;
+  db.run("DELETE FROM owned_packs");
+  if(owned.size){const s=db.prepare("INSERT OR IGNORE INTO owned_packs VALUES(?)");owned.forEach(c=>s.run([c]));s.free();}
+}
+
+async function ensureData(force){
+  await initSql();
+  if(!force){
+    const cached=await idbGet("dbfile_v3");
+    if(cached){ db=new SQLLIB.Database(new Uint8Array(cached)); applyOwned(); detectEncounters(); dataReady=true; return; }
+  }
+  loader(true,"Downloading the latest card data from MarvelCDB…");prog(0.02);
+  await fetchPackList();
+  await buildDatabase(p=>{prog(0.05+p*0.9);$("#loadtxt").textContent=`Downloading card data… ${Math.round(p*100)}%`;});
+  prog(0.98);$("#loadtxt").textContent="Saving locally…";
+  await idbPut("dbfile_v3",db.export());
+  dataReady=true;
+  loader(false);
+}
+
+/* ============================================================
+   COLLECTION
+   ============================================================ */
+function saveOwned(){localStorage.setItem("mc_owned",JSON.stringify(Array.from(owned)));}
+function renderCollection(){
+  const term=($("#coll-search").value||"").toLowerCase();
+  const groups={};
+  PACKS.forEach(p=>{const g=(TYPE_GROUPS[p.type]||{label:"Other",order:9});(groups[g.label]=groups[g.label]||{order:g.order,items:[]}).items.push(p);});
+  const order=Object.entries(groups).sort((a,b)=>a[1].order-b[1].order);
+  let html="";
+  order.forEach(([label,grp])=>{
+    const items=grp.items.filter(p=>!term||p.name.toLowerCase().includes(term));
+    if(!items.length)return;
+    const ownedN=items.filter(p=>owned.has(p.code)).length;
+    html+=`<div class="catblock"><div class="cathead" data-cat="${esc(label)}">
+      <h3>${esc(label)}</h3><span class="ct">${ownedN}/${items.length}</span></div><div class="packgrid">`;
+    items.forEach(p=>{
+      html+=`<div class="packitem ${owned.has(p.code)?'owned':''}" data-pack="${p.code}">
+        <div class="chk">${owned.has(p.code)?'✓':''}</div>
+        <div class="pn"><b>${esc(p.name)}</b><span>${esc((p.date||'').slice(0,4))}</span></div>
+        <span class="pill" style="background:${groupColor(p.type)}">${esc(shortType(p.type))}</span>
+      </div>`;
+    });
+    html+=`</div></div>`;
+  });
+  $("#coll-list").innerHTML=html||`<div class="empty">No products match.</div>`;
+  $$("#coll-list .packitem").forEach(el=>el.onclick=()=>{const c=el.dataset.pack;owned.has(c)?owned.delete(c):owned.add(c);saveOwned();applyOwned();renderCollection();updateStats();});
+  updateStats();
+}
+function shortType(t){return ({core:"Core",hero:"Hero",story:"Box",scenario:"Scenario",campaign:"Campaign",encounter:"Modular"})[t]||t;}
+function groupColor(t){return ({core:"#7a1518",hero:"#2f6fb0",story:"#8a5cc4",scenario:"#b06a2b",encounter:"#5a6473"})[t]||"#555";}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+function updateStats(){
+  $("#st-prod").textContent=owned.size;
+  $("#st-decks").textContent=decks.length;
+  if(dataReady&&db){
+    const cc=q1("SELECT COUNT(DISTINCT c.code) n FROM cards c JOIN printings p ON p.card_code=c.code JOIN owned_packs o ON o.pack_code=p.pack_code");
+    $("#st-cards").textContent=cc?cc.n:0;
+    $("#st-heroes").textContent=heroRows().filter(h=>h.own>0).length;
+  }
+}
+
+/* ============================================================
+   HEROES
+   ============================================================ */
+// One row per hero IDENTITY. Heroes like Ant-Man/Wasp have several "hero" form cards
+// sharing one set_code; keep the identity front (the one with a back_link).
+function heroRows(){
+  let rows=q(`SELECT c.*, (SELECT COUNT(*) FROM printings p JOIN owned_packs o ON o.pack_code=p.pack_code WHERE p.card_code=c.code) AS own
+    FROM cards c WHERE c.type_code='hero' ORDER BY c.position, c.code`);
+  const seen=new Map();
+  rows.forEach(r=>{const key=r.set_code||r.code; const cur=seen.get(key);
+    if(!cur) seen.set(key,r); else if(!cur.back_link && r.back_link) seen.set(key,r);});
+  return Array.from(seen.values()).sort((a,b)=>a.name.localeCompare(b.name));
+}
+function renderHeroes(){
+  if(!requireData($("#hero-list")))return;
+  const term=($("#hero-search").value||"").toLowerCase();
+  const ownedOnly=$("#hero-owned").checked;
+  let rows=heroRows().filter(r=>(!ownedOnly||r.own>0)&&(!term||r.name.toLowerCase().includes(term)));
+  if(!rows.length){$("#hero-list").innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="big">🦸</div>${ownedOnly?"No heroes in your collection yet. Check some products in the Collection tab.":"No heroes match."}</div>`;return;}
+  $("#hero-list").innerHTML=rows.map(h=>`
+    <div class="herocard" data-code="${h.code}">
+      <div class="heroavatar"><img loading="lazy" src="${imgUrl(h.code)}" onerror="this.style.display='none'" alt=""></div>
+      <b>${esc(h.name)}</b><span>${esc(packName(h.home_pack))}${h.own>0?"":" · not owned"}</span>
+    </div>`).join("");
+  $$("#hero-list .herocard").forEach(el=>el.onclick=()=>openHeroDetail(el.dataset.code));
+}
+
+/* ============================================================
+   VILLAINS & SCENARIOS
+   ============================================================ */
+// Render encounter card sets (villains, nemesis, modular…) grouped into collapsible blocks.
+function renderSetGroups(targetSel, setTypes, term, ownedOnly){
+  const el=$(targetSel);
+  if(!requireData(el))return;
+  if(!encountersAvailable){
+    el.innerHTML=`<div class="notice" style="margin-top:6px">Encounter data (villains, schemes, modular sets) couldn't be downloaded from MarvelCDB on the last load — only player-card data is cached. While online, press <b>↻ Update data</b> (top-right) to fetch it.</div>`;
+    return;
+  }
+  const ph=setTypes.map(()=>"?").join(",");
+  let sets=q(`SELECT set_code, MAX(set_name) set_name FROM cards WHERE set_type IN (${ph}) AND set_code IS NOT NULL GROUP BY set_code`,setTypes);
+  sets.forEach(s=>{
+    s.cards=q(`SELECT c.*, (SELECT quantity FROM printings WHERE card_code=c.code LIMIT 1) qty, (SELECT COUNT(*) FROM printings p JOIN owned_packs o ON o.pack_code=p.pack_code WHERE p.card_code=c.code) own FROM cards c WHERE c.set_code=? ORDER BY c.position`,[s.set_code]);
+    s.owned=s.cards.some(c=>c.own>0);
+    s.name=s.set_name||s.set_code;
+    s.type=(s.cards[0]&&s.cards[0].set_type)||setTypes[0];
+  });
+  if(term)sets=sets.filter(s=>s.name.toLowerCase().includes(term)||s.cards.some(c=>c.name.toLowerCase().includes(term)));
+  if(ownedOnly)sets=sets.filter(s=>s.owned);
+  sets.sort((a,b)=>a.name.localeCompare(b.name));
+  if(!sets.length){el.innerHTML=`<div class="empty"><div class="big">${ownedOnly?'📦':'🔍'}</div>${ownedOnly?"Nothing here in your collection yet. Mark the products you own in the Collection tab.":"No sets match your search."}</div>`;return;}
+  el.innerHTML=sets.map(s=>{
+    const st=SET_TYPE[s.type]||{n:s.type,c:'#555'};
+    const ownN=s.cards.filter(c=>c.own>0).length;
+    return `<div class="catblock"><div class="cathead" data-toggle>
+      <h3>${esc(s.name)}</h3>
+      <span class="pill" style="background:${st.c}">${esc(st.n)}</span>
+      <span class="ct">${ownN}/${s.cards.length} cards</span>
+      <span class="muted" style="margin-left:6px">${s.owned?'✓ owned':'—'}</span></div>
+      <div class="cardgrid" style="padding:14px 16px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))">${s.cards.map(c=>cardTile(c)).join("")}</div></div>`;
+  }).join("");
+  el.querySelectorAll(".cathead[data-toggle]").forEach(h=>h.onclick=()=>{const g=h.nextElementSibling;g.style.display=g.style.display==="none"?"":"none";});
+  bindTiles(targetSel);
+}
+function renderVillains(){
+  const types=$("#vil-nemesis").checked?["villain","nemesis"]:["villain"];
+  renderSetGroups("#vil-list",types,($("#vil-search").value||"").toLowerCase(),$("#vil-owned").checked);
+}
+function renderModular(){
+  renderSetGroups("#mod-list",[$("#mod-type").value||"modular"],($("#mod-search").value||"").toLowerCase(),$("#mod-owned").checked);
+}
+
+/* ============================================================
+   CARD BROWSER
+   ============================================================ */
+let cardPage=0, cardRows=[];
+function runCardQuery(){
+  const term=($("#card-search").value||"").toLowerCase();
+  const fac=$("#card-faction").value, type=$("#card-type").value, pack=$("#card-pack").value;
+  const ownedOnly=$("#card-owned").checked;
+  let where=["1=1"],p=[];
+  if(fac){where.push("c.faction_code=?");p.push(fac);}
+  if(type){where.push("c.type_code=?");p.push(type);}
+  let sql=`SELECT c.*, (SELECT COUNT(*) FROM printings pr JOIN owned_packs o ON o.pack_code=pr.pack_code WHERE pr.card_code=c.code) AS own
+    FROM cards c`;
+  if(pack){sql+=` JOIN printings pk ON pk.card_code=c.code AND pk.pack_code=?`;p.unshift(pack);}
+  sql+=` WHERE ${where.join(" AND ")} GROUP BY c.code ORDER BY c.name`;
+  let rows=q(sql,p);
+  rows=rows.filter(r=>(!ownedOnly||r.own>0)&&(!term||r.name.toLowerCase().includes(term)||(r.text||"").toLowerCase().includes(term)||(r.traits||"").toLowerCase().includes(term)));
+  cardRows=rows;cardPage=0;
+  $("#card-count").textContent=`${rows.length} card${rows.length===1?"":"s"}`;
+  $("#card-list").innerHTML="";
+  showMoreCards();
+}
+function showMoreCards(){
+  const per=48,start=cardPage*per,slice=cardRows.slice(start,start+per);
+  $("#card-list").insertAdjacentHTML("beforeend",slice.map(c=>cardTile(c)).join(""));
+  bindTiles("#card-list");
+  cardPage++;
+  $("#card-more").style.display=(cardPage*per<cardRows.length)?"inline-flex":"none";
+}
+function cardTile(c){
+  const fac=FACTION[c.faction_code]||{c:"#555"};
+  return `<div class="ccard" data-code="${c.code}">
+    <div class="fbar" style="background:${fac.c}"></div>
+    ${c.qty&&c.qty>1?`<span class="qty-badge">×${c.qty}</span>`:""}
+    <span class="own-badge ${c.own>0?'':'no'}">${c.own>0?'Owned':'—'}</span>
+    <div class="imgwrap"><img loading="lazy" src="${imgUrl(c.code)}" alt="${esc(c.name)}" onerror="this.parentNode.innerHTML='<div class=&quot;ph&quot;>'+this.alt+'</div>'"></div>
+    <div class="meta"><b>${esc(c.name)}</b>
+      <div class="sm"><span>${esc(TYPE_NAME[c.type_code]||c.type_code)}</span><span>${c.cost==null?'':'⬡'+c.cost}</span></div>
+    </div></div>`;
+}
+function bindTiles(sel){$$(`${sel} .ccard`).forEach(el=>{if(el._b)return;el._b=1;el.onclick=()=>openCard(el.dataset.code);});}
+
+/* ============================================================
+   CARD MODAL
+   ============================================================ */
+function openCard(code){
+  const c=q1("SELECT * FROM cards WHERE code=?",[code]);
+  if(!c){toast("Card details not loaded yet.");return;}
+  $("#m-name").textContent=c.name+(c.subname?" — "+c.subname:"");
+  const img=$("#m-img");img.src=imgUrl(c.code);img.style.display="";img.onerror=()=>{img.style.display="none";};
+  const fac=FACTION[c.faction_code]||{n:c.faction_code,c:"#555"};
+  const tags=[];
+  tags.push(`<span class="tag" style="border-color:${fac.c}">${esc(fac.n)}</span>`);
+  tags.push(`<span class="tag">${esc(TYPE_NAME[c.type_code]||c.type_code)}</span>`);
+  if(c.set_name)tags.push(`<span class="tag">${esc(c.set_name)}${c.set_type&&SET_TYPE[c.set_type]?" · "+SET_TYPE[c.set_type].n:""}</span>`);
+  if(c.cost!=null)tags.push(`<span class="tag">Cost ${c.cost}</span>`);
+  if(c.is_unique)tags.push(`<span class="tag">◆ Unique</span>`);
+  if(c.attack!=null)tags.push(`<span class="tag">ATK ${c.attack}</span>`);
+  if(c.thwart!=null)tags.push(`<span class="tag">THW ${c.thwart}</span>`);
+  if(c.defense!=null)tags.push(`<span class="tag">DEF ${c.defense}</span>`);
+  if(c.health!=null)tags.push(`<span class="tag">HP ${c.health}</span>`);
+  if(c.recover!=null)tags.push(`<span class="tag">REC ${c.recover}</span>`);
+  if(c.hand_size!=null)tags.push(`<span class="tag">Hand ${c.hand_size}</span>`);
+  const pips=resPips(c);if(pips)tags.push(`<span class="tag">Resources ${pips}</span>`);
+  if(c.deck_limit)tags.push(`<span class="tag">Limit ${c.deck_limit}</span>`);
+  $("#m-kv").innerHTML=tags.join("");
+  $("#m-text").innerHTML=(c.traits?`<div style="color:var(--gold);font-weight:700;margin-bottom:6px">${esc(c.traits)}</div>`:"")+(richText(c.text)||'<span class="muted">No card text.</span>');
+  $("#m-flavor").textContent=c.flavor||"";
+  // ownership + printings
+  const prs=q("SELECT pr.pack_code,pr.quantity FROM printings pr WHERE pr.card_code=? ",[code]);
+  const ownedPr=prs.filter(p=>owned.has(p.pack_code));
+  const totalOwn=ownedPr.reduce((a,b)=>a+b.quantity,0);
+  $("#m-own").innerHTML=totalOwn>0?`<span style="color:var(--good);font-weight:700">✓ In your collection</span> (${totalOwn} cop${totalOwn===1?'y':'ies'})`:`<span class="muted">Not in your collection</span>`;
+  $("#m-packs").innerHTML="<b>Found in:</b> "+prs.map(p=>`${esc(packName(p.pack_code))}${p.quantity>1?" ×"+p.quantity:""}${owned.has(p.pack_code)?" ✓":""}`).join(" · ");
+  $("#modal").classList.add("show");
+}
+
+/* ============================================================
+   HERO DETAIL  (aspect cards with images + starter deck)
+   ============================================================ */
+// Official starter decklists by hero code (used instead of pack reconstruction where the pack pool
+// doesn't map 1:1 to the suggested deck — e.g. the Core Set heroes and Deadpool).
+const STARTER_DECKS={
+  "01001a":5,"01010a":2,"01019a":3,"01029a":4,"01040a":1,   // Core Set
+  "04001a":3483,"04031a":3390,                              // Rise of Red Skull (Hawkeye, Spider-Woman)
+  "16001a":8441,"16029a":8762,                              // Galaxy's Most Wanted (Groot, Rocket Raccoon)
+  "21001a":14354,"21031a":14355,                            // Mad Titan's Shadow (Spectrum, Adam Warlock)
+  "27001a":38354,"27030a":18101,                            // Sinister Motives (Ghost-Spider, Spider-Man/Miles)
+  "32001a":27026,"32030a":23072,                            // Mutant Genesis (Colossus, Shadowcat)
+  "40001a":32974,"40037a":32975,                            // NeXt Evolution (Cable, Domino)
+  "44001a":38350,                                           // Deadpool
+  "45001a":38001,"45030a":38002,                            // Age of Apocalypse (Bishop, Magik)
+  "50001a":47082,"50034a":48334,                            // Agents of S.H.I.E.L.D. (Maria Hill, Nick Fury)
+  "56001a":55371,"56029a":55370                             // Civil War (Tigra, Hulkling)
+};
+function openHeroDetail(heroCode){
+  if(!dataReady||!db){toast("Card data still loading…");return;}
+  const hero=q1("SELECT * FROM cards WHERE code=?",[heroCode]);
+  if(!hero){toast("Hero not found.");return;}
+  const pack=hero.home_pack, hset=hero.set_code;
+  const isDedicated=((PACKS.find(p=>p.code===pack)||{}).type)==="hero"; // single-hero pack vs a shared box
+  const all=q(`SELECT c.*, (SELECT quantity FROM printings WHERE card_code=c.code AND pack_code=? LIMIT 1) qty, (SELECT COUNT(*) FROM printings p JOIN owned_packs o ON o.pack_code=p.pack_code WHERE p.card_code=c.code) own FROM cards c WHERE c.home_pack=? ORDER BY c.position`,[pack,pack]);
+  const isPlayer=c=>["ally","event","upgrade","support","resource","player_side_scheme"].includes(c.type_code);
+  const identity=all.filter(c=>["hero","alter_ego"].includes(c.type_code)&&c.set_code===hset);
+  const signature=all.filter(c=>isPlayer(c)&&["hero","pool"].includes(c.faction_code)&&c.set_code===hset);
+  const nemesis=all.filter(c=>c.faction_code==="encounter"&&c.set_code&&c.set_code.indexOf(hset)===0);
+  const grid=cards=>`<div class="cardgrid" style="grid-template-columns:repeat(auto-fill,minmax(116px,1fr));margin-bottom:8px">${cards.map(c=>cardTile(c)).join("")}</div>`;
+  const hasStarter=STARTER_DECKS[heroCode]?true:isDedicated;
+  let html=`<div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap">`;
+  identity.forEach(c=>{html+=`<img loading="lazy" src="${imgUrl(c.code)}" onerror="this.style.display='none'" alt="${esc(c.name)}" style="height:158px;border-radius:9px;border:1px solid var(--line2)">`;});
+  html+=`<div style="flex:1;min-width:170px"><div class="muted" style="font-size:12px">${esc(packName(pack))}</div>
+    <h2 style="margin:3px 0 10px">${esc(hero.name)}</h2>
+    ${hasStarter?`<button class="btn primary" id="hm-starter">⚔ Build the starter deck</button>`:""}</div></div>`;
+  if(signature.length)html+=`<div class="secthead">Signature cards · ${signature.length}</div>${grid(signature)}`;
+  if(!isDedicated){
+    html+=`<div class="notice" style="margin:10px 0">This hero comes in a multi-hero box, so its aspect cards are shared with the other heroes from that box. Browse them in the <b>Cards</b> tab, or press <b>Build the starter deck</b> to load this hero's suggested deck.</div>`;
+  }else{
+    ["aggression","justice","leadership","protection","pool"].forEach(a=>{const cs=all.filter(c=>isPlayer(c)&&c.faction_code===a);if(cs.length)html+=`<div class="secthead" style="color:${FACTION[a].c}">${FACTION[a].n} aspect · ${cs.length}</div>${grid(cs)}`;});
+    const basics=all.filter(c=>isPlayer(c)&&c.faction_code==="basic");
+    if(basics.length)html+=`<div class="secthead">Basic · ${basics.length}</div>${grid(basics)}`;
+  }
+  if(nemesis.length)html+=`<div class="secthead">Nemesis set · ${nemesis.length}</div>${grid(nemesis)}`;
+  $("#hm-title").textContent=hero.name;
+  $("#hm-body").innerHTML=html;
+  $("#hm-body").querySelectorAll(".ccard").forEach(el=>el.onclick=()=>openCard(el.dataset.code));
+  const sb=$("#hm-starter");if(sb)sb.onclick=()=>{$("#hmodal").classList.remove("show");buildStarterDeck(heroCode);};
+  $("#hmodal").classList.add("show");
+}
+async function buildStarterDeck(heroCode){
+  const hero=q1("SELECT * FROM cards WHERE code=?",[heroCode]);
+  if(!hero){toast("Hero not found.");return;}
+  if(STARTER_DECKS[heroCode]){ // official starter decklist (loaded via the import flow)
+    try{loader(true,"Loading the starter deck…");const deck=await apiJson(`https://marvelcdb.com/api/public/decklist/${STARTER_DECKS[heroCode]}.json`);loader(false);loadImportedDeck(deck);}
+    catch(e){loader(false);toast("Couldn't fetch the starter deck. Check your connection.");}
+    return;
+  }
+  // No official starter mapped: only dedicated single-hero packs can be safely reconstructed.
+  if(((PACKS.find(p=>p.code===hero.home_pack)||{}).type)!=="hero"){toast("No official starter mapped for this hero yet — you can paste its MarvelCDB link in the importer.");return;}
+  // dedicated hero pack: the pack contains exactly one hero's starter — reconstruct it from the pack contents
+  const pack=hero.home_pack, hset=hero.set_code;
+  const playerTypes="('ally','event','upgrade','support','resource','player_side_scheme')";
+  const dom=q(`SELECT faction_code, COUNT(*) n FROM cards WHERE home_pack=? AND type_code IN ${playerTypes} AND faction_code IN ('aggression','justice','leadership','protection','pool') GROUP BY faction_code ORDER BY n DESC LIMIT 1`,[pack]);
+  const aspect=dom.length?dom[0].faction_code:"";
+  curDeck={name:hero.name+" — Starter",heroCode:hero.code,setCode:hset,aspect,cards:{}};
+  dbView=aspect||null;
+  const cards=q(`SELECT c.code,(SELECT quantity FROM printings WHERE card_code=c.code AND pack_code=? LIMIT 1) qty
+     FROM cards c WHERE c.home_pack=? AND c.type_code IN ${playerTypes} AND (c.faction_code=? OR c.faction_code='basic')`,[pack,pack,aspect]);
+  cards.forEach(r=>{if(r.code)curDeck.cards[r.code]=r.qty||1;});
+  $("#db-hero-owned").checked=false;
+  $("#db-name").value=curDeck.name;
+  switchTab("deck");
+  renderDeckBuilder();
+  toast("Starter deck loaded — signature cards are auto-included.");
+}
+
+/* ============================================================
+   DECK BUILDER
+   ============================================================ */
+function heroList(ownedOnly){ return heroRows().filter(r=>!ownedOnly||r.own>0); }
+function availQty(code){const r=q1("SELECT COALESCE(SUM(pr.quantity),0) n FROM printings pr JOIN owned_packs o ON o.pack_code=pr.pack_code WHERE pr.card_code=?",[code]);return r?r.n:0;}
+
+function signatureCards(setCode){
+  if(!setCode)return [];
+  return q(`SELECT * FROM cards WHERE set_code=? AND type_code IN (${DECK_TYPES.map(()=>"?").join(",")})
+     AND faction_code IN ('hero','pool') ORDER BY position`,[setCode,...DECK_TYPES]);
+}
+function poolCards(faction){
+  if(!faction)return [];
+  return q(`SELECT c.*, COALESCE(SUM(pr.quantity),0) avail
+    FROM cards c JOIN printings pr ON pr.card_code=c.code JOIN owned_packs o ON o.pack_code=pr.pack_code
+    WHERE c.faction_code=? AND c.type_code IN (${DECK_TYPES.map(()=>"?").join(",")})
+    GROUP BY c.code HAVING avail>0 ORDER BY c.cost,c.name`,[faction,...DECK_TYPES]);
+}
+
+function newDeck(){curDeck={name:"",heroCode:"",setCode:"",aspect:"",cards:{}};dbView=null;$("#db-name").value="";renderDeckBuilder();}
+function selectHero(code){
+  const h=q1("SELECT * FROM cards WHERE code=?",[code]);
+  curDeck.heroCode=code;curDeck.setCode=h?h.set_code:"";
+  renderDeckBuilder();
+}
+function selectAspect(a){curDeck.aspect=a;dbView=a;renderDeckBuilder();}
+function selectBasicView(){dbView="basic";renderDeckBuilder();}
+function setCount(code,n){
+  const c=q1("SELECT deck_limit FROM cards WHERE code=?",[code]);
+  const max=Math.min(c?c.deck_limit:3, availQty(code));
+  n=Math.max(0,Math.min(n,max));
+  if(n===0)delete curDeck.cards[code];else curDeck.cards[code]=n;
+  renderDeckBuilder();
+}
+
+function renderDeckBuilder(){
+  if(!requireData($("#db-pool")))return;
+  if(!curDeck)newDeck();
+  // hero select
+  const ownedOnly=$("#db-hero-owned").checked;
+  const heroes=heroList(ownedOnly);
+  const hsel=$("#db-hero");
+  hsel.innerHTML=`<option value="">— Choose a hero —</option>`+heroes.map(h=>`<option value="${h.code}" ${h.code===curDeck.heroCode?'selected':''}>${esc(h.name)}${h.own>0?'':' (not owned)'}</option>`).join("");
+  // aspects (the four + Pool) plus a Basic category. Clicking an aspect sets the deck's aspect AND views it;
+  // clicking Basic just views the Basic cards (your chosen aspect stays outlined).
+  const view=dbView||curDeck.aspect;
+  const aspBtns=ASPECTS.map(a=>{
+    const isView=view===a, isChosen=curDeck.aspect===a;
+    const style=isView?`background:${FACTION[a].c};border-color:${FACTION[a].c}`:(isChosen?`border-color:${FACTION[a].c};color:${FACTION[a].c}`:"");
+    return `<button class="aspect-btn ${isView?'sel':''}" data-asp="${a}" style="${style}" title="${isChosen?'Your deck aspect':''}">${FACTION[a].n}</button>`;
+  }).join("");
+  const basicBtn=`<button class="aspect-btn ${view==='basic'?'sel':''}" data-basic="1" style="${view==='basic'?`background:${FACTION.basic.c};border-color:${FACTION.basic.c}`:''}">Basic</button>`;
+  $("#db-aspects").innerHTML=aspBtns+basicBtn;
+  $$("#db-aspects [data-asp]").forEach(b=>b.onclick=()=>selectAspect(b.dataset.asp));
+  const _bb=$("#db-aspects [data-basic]");if(_bb)_bb.onclick=selectBasicView;
+
+  const sig=signatureCards(curDeck.setCode);
+  // Build one unified list of deck cards (signature + added) used by the list, stats and validation.
+  const entries=[];
+  sig.forEach(c=>entries.push({code:c.code,name:c.name,cost:c.cost,type:c.type_code,faction:c.faction_code,
+    count:Math.max(1,availQty(c.code)||qtyInHomePack(c.code)),fixed:true,
+    res_phys:c.res_phys,res_ment:c.res_ment,res_ener:c.res_ener,res_wild:c.res_wild}));
+  Object.entries(curDeck.cards).forEach(([code,n])=>{const c=q1("SELECT * FROM cards WHERE code=?",[code]);if(c)
+    entries.push({code,name:c.name,cost:c.cost,type:c.type_code,faction:c.faction_code,count:n,fixed:false,
+      res_phys:c.res_phys,res_ment:c.res_ment,res_ener:c.res_ener,res_wild:c.res_wild});});
+  let sigTotal=0;sig.forEach(c=>{sigTotal+=Math.max(1,availQty(c.code)||qtyInHomePack(c.code));});
+  let addedTotal=0;Object.values(curDeck.cards).forEach(n=>addedTotal+=n);
+  const total=sigTotal+addedTotal;
+
+  renderPool();
+  renderDeckList(entries);
+  renderDeckStats(entries);
+  renderValidation(sig,sigTotal,total);
+  $("#db-count").textContent=total;
+  $("#db-aspect-note").innerHTML=curDeck.heroCode?"":"Pick a hero to begin. Signature cards are added automatically.";
+  renderSavedDecks();
+}
+function qtyInHomePack(code){const r=q1("SELECT quantity FROM printings WHERE card_code=? LIMIT 1",[code]);return r?r.quantity:1;}
+
+function poolImgTile(c){
+  const n=curDeck.cards[c.code]||0;
+  const max=Math.min(c.deck_limit||3,c.avail);
+  return `<div class="poolcard">
+    <div class="imgwrap" data-open="${c.code}" title="${esc(c.name)}">
+      <img loading="lazy" src="${imgUrl(c.code)}" alt="${esc(c.name)}" onerror="this.parentNode.innerHTML='<div class=&quot;ph&quot;>'+this.alt+'</div>'">
+      <span class="cost-badge">${c.cost==null?'–':c.cost}</span>
+      ${n>0?`<span class="indeck-badge">${n}</span>`:""}
+    </div>
+    <div class="pf"><span class="muted" style="font-size:10px">own ${c.avail}</span>
+      <span class="stepper"><button data-dec="${c.code}" ${n<=0?'disabled':''}>−</button><span class="n">${n}</span><button data-inc="${c.code}" ${n>=max?'disabled':''}>+</button></span>
+    </div></div>`;
+}
+function renderPool(){
+  const wrap=$("#db-pool");
+  const faction=dbView||curDeck.aspect; // which category is being viewed (an aspect or 'basic')
+  if(!faction){wrap.innerHTML=`<div class="notice" style="margin:10px">Choose an aspect (or Basic) above to see the cards you can add.</div>`;return;}
+  const term=($("#db-pool-search").value||"").toLowerCase();
+  const ft=$("#db-pool-type").value;
+  const sort=$("#db-pool-sort").value;
+  let pool=poolCards(faction);
+  if(ft)pool=pool.filter(c=>c.type_code===ft);
+  if(term)pool=pool.filter(c=>c.name.toLowerCase().includes(term)||(c.text||"").toLowerCase().includes(term)||(c.traits||"").toLowerCase().includes(term));
+  pool.sort((a,b)=> sort==="name"?a.name.localeCompare(b.name):((a.cost==null?99:a.cost)-(b.cost==null?99:b.cost)||a.name.localeCompare(b.name)));
+  const label=faction==="basic"?"Basic":FACTION[faction].n;
+  if(!pool.length){wrap.innerHTML=`<div class="notice" style="margin:10px">No ${label} cards available from your collection${term||ft?" for this filter":""}.</div>`;return;}
+  wrap.innerHTML=`<div class="secthead" style="margin:8px 8px 2px;color:${faction==="basic"?"var(--muted)":FACTION[faction].c}">${label} · ${pool.length}</div><div class="db-pool-grid">${pool.map(poolImgTile).join("")}</div>`;
+  wrap.querySelectorAll("[data-inc]").forEach(b=>b.onclick=()=>setCount(b.dataset.inc,(curDeck.cards[b.dataset.inc]||0)+1));
+  wrap.querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>setCount(b.dataset.dec,(curDeck.cards[b.dataset.dec]||0)-1));
+  wrap.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openCard(b.dataset.open));
+}
+
+const DECKLIST_ORDER=["ally","event","support","upgrade","resource","player_side_scheme"];
+function renderDeckList(entries){
+  const box=$("#db-decklist");
+  if(!curDeck.heroCode){box.innerHTML=`<div class="muted" style="padding:8px">No hero selected.</div>`;return;}
+  if(!entries.length){box.innerHTML=`<div class="muted" style="padding:8px">No cards yet.</div>`;return;}
+  const groups={};entries.forEach(e=>{(groups[e.type]=groups[e.type]||[]).push(e);});
+  const types=DECKLIST_ORDER.filter(t=>groups[t]).concat(Object.keys(groups).filter(t=>!DECKLIST_ORDER.includes(t)));
+  let html="";
+  types.forEach(type=>{
+    const g=groups[type].slice().sort((a,b)=>(a.cost==null?99:a.cost)-(b.cost==null?99:b.cost)||a.name.localeCompare(b.name));
+    const n=g.reduce((a,e)=>a+e.count,0);
+    html+=`<div class="secthead">${esc(TYPE_NAME[type]||type)} · ${n}</div>`;
+    html+=g.map(e=>{
+      const right = e.fixed
+        ? `<span class="muted" title="Signature card (auto-included)"><span class="sig-star">★</span> ×${e.count}</span>`
+        : `<span class="stepper"><button data-dec="${e.code}">−</button><span class="n">${e.count}</span><button data-inc="${e.code}">+</button></span>`;
+      return `<div class="rowline"><span class="cost">${e.cost==null?'–':e.cost}</span>
+        <span class="nm" data-open="${e.code}" style="cursor:pointer">${esc(e.name)}</span>${right}</div>`;
+    }).join("");
+  });
+  box.innerHTML=html;
+  box.querySelectorAll("[data-inc]").forEach(b=>b.onclick=()=>setCount(b.dataset.inc,(curDeck.cards[b.dataset.inc]||0)+1));
+  box.querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>setCount(b.dataset.dec,(curDeck.cards[b.dataset.dec]||0)-1));
+  box.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openCard(b.dataset.open));
+}
+function miniBars(title,data){
+  if(!data.length)return "";
+  const max=Math.max(1,...data.map(d=>d.value));
+  return `<div class="chart"><div class="chart-t">${esc(title)}</div>`+
+    data.map(d=>`<div class="bar-row"><span class="bar-l">${esc(d.label)}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${(d.value/max*100).toFixed(1)}%;background:${d.color||'var(--leadership)'}"></span></span>
+      <span class="bar-v">${d.value}</span></div>`).join("")+`</div>`;
+}
+function renderDeckStats(entries){
+  const box=$("#db-stats");
+  if(!curDeck.heroCode||!entries.length){box.innerHTML=`<div class="muted" style="font-size:12.5px">Stats appear once you pick a hero and add cards.</div>`;return;}
+  // 1 · cards by type
+  const byType=["ally","event","support","upgrade","resource","player_side_scheme"]
+    .map(t=>({label:TYPE_NAME[t],value:entries.filter(e=>e.type===t).reduce((a,e)=>a+e.count,0),color:'var(--leadership)'})).filter(d=>d.value>0);
+  // 2 · cost curve (cards with a printed cost)
+  const costMap={};entries.forEach(e=>{if(e.cost==null)return;const k=e.cost>=6?'6+':String(e.cost);costMap[k]=(costMap[k]||0)+e.count;});
+  const byCost=['0','1','2','3','4','5','6+'].filter(k=>costMap[k]).map(k=>({label:k,value:costMap[k],color:'var(--gold)'}));
+  // 3 · resource icons by type
+  const res={phys:0,ment:0,ener:0,wild:0};
+  entries.forEach(e=>{res.phys+=e.count*(e.res_phys||0);res.ment+=e.count*(e.res_ment||0);res.ener+=e.count*(e.res_ener||0);res.wild+=e.count*(e.res_wild||0);});
+  const byRes=[{label:'Physical',value:res.phys,color:'#c94a3f'},{label:'Mental',value:res.ment,color:'#3f7fc9'},
+    {label:'Energy',value:res.ener,color:'#e0a83a'},{label:'Wild',value:res.wild,color:'#3fa34d'}].filter(d=>d.value>0);
+  // 4 · cards by aspect / faction
+  const facMap={};entries.forEach(e=>{facMap[e.faction]=(facMap[e.faction]||0)+e.count;});
+  const byFac=['hero','pool','aggression','justice','leadership','protection','basic']
+    .filter(f=>facMap[f]).map(f=>({label:FACTION[f]?FACTION[f].n:f,value:facMap[f],color:FACTION[f]?FACTION[f].c:'#777'}));
+  box.innerHTML=miniBars("Cards by type",byType)+miniBars("Card cost",byCost)+miniBars("Resource icons",byRes)+miniBars("Cards by aspect",byFac);
+}
+
+function renderValidation(sig,sigTotal,total){
+  const box=$("#db-validation");
+  const errs=[],warns=[];
+  if(!curDeck.heroCode)errs.push("Choose a hero.");
+  if(!curDeck.aspect)errs.push("Choose an aspect.");
+  if(curDeck.heroCode){
+    const own=availQty(curDeck.heroCode);
+    if(own<=0)warns.push("You don't own this hero (building in preview mode).");
+  }
+  if(curDeck.heroCode&&curDeck.aspect){
+    if(total<40)errs.push(`Need at least 40 cards — you have ${total} (add ${40-total} more).`);
+    if(total>50)warns.push(`${total} cards is large; most decks run 40–50.`);
+  }
+  // per-card limit / availability re-check
+  Object.entries(curDeck.cards).forEach(([code,n])=>{
+    const c=q1("SELECT name,deck_limit FROM cards WHERE code=?",[code]);if(!c)return;
+    const av=availQty(code);
+    if(n>(c.deck_limit||3))errs.push(`${c.name}: max ${c.deck_limit} per deck.`);
+    if(n>av)errs.push(`${c.name}: you only own ${av}.`);
+  });
+  const ok=errs.length===0&&curDeck.heroCode&&curDeck.aspect;
+  box.className="valbox "+(ok?"ok":"no");
+  let h=ok?`<b>✓ Legal deck</b>`:`<b>${errs.length?'Not legal yet':'Keep building'}</b>`;
+  if(errs.length)h+=`<ul>${errs.map(e=>`<li>${esc(e)}</li>`).join("")}</ul>`;
+  if(warns.length)h+=`<ul style="opacity:.85">${warns.map(w=>`<li>⚠ ${esc(w)}</li>`).join("")}</ul>`;
+  box.innerHTML=h;
+}
+
+function saveDeck(){
+  if(!curDeck||!curDeck.heroCode){toast("Pick a hero first.");return;}
+  curDeck.name=($("#db-name").value||"").trim()||(q1("SELECT name FROM cards WHERE code=?",[curDeck.heroCode]).name+(curDeck.aspect?" — "+FACTION[curDeck.aspect].n:""));
+  if(!curDeck.id)curDeck.id="d"+Date.now();
+  const i=decks.findIndex(d=>d.id===curDeck.id);
+  const copy=JSON.parse(JSON.stringify(curDeck));
+  if(i>=0)decks[i]=copy;else decks.push(copy);
+  localStorage.setItem("mc_decks",JSON.stringify(decks));
+  renderSavedDecks();updateStats();toast("Deck saved ✓");
+}
+function loadDeck(id){const d=decks.find(x=>x.id===id);if(!d)return;curDeck=JSON.parse(JSON.stringify(d));dbView=null;$("#db-name").value=d.name||"";renderDeckBuilder();window.scrollTo({top:0,behavior:"smooth"});}
+function deleteDeck(id){decks=decks.filter(d=>d.id!==id);localStorage.setItem("mc_decks",JSON.stringify(decks));renderSavedDecks();updateStats();}
+function renderSavedDecks(){
+  const box=$("#db-saved");
+  if(!decks.length){box.innerHTML=`<div class="muted" style="font-size:13px">No saved decks yet.</div>`;return;}
+  box.innerHTML=decks.map(d=>{
+    const hero=db?q1("SELECT name FROM cards WHERE code=?",[d.heroCode]):null;
+    return `<div class="savedeck"><div class="nm"><b>${esc(d.name||'Deck')}</b><br><span class="muted" style="font-size:11.5px">${esc(hero?hero.name:d.heroCode)}${d.aspect?' · '+FACTION[d.aspect].n:''}</span></div>
+      <button class="btn sm" data-load="${d.id}">Open</button>
+      <button class="btn sm ghost" data-del="${d.id}">🗑</button></div>`;
+  }).join("");
+  box.querySelectorAll("[data-load]").forEach(b=>b.onclick=()=>loadDeck(b.dataset.load));
+  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{if(confirm("Delete this deck?"))deleteDeck(b.dataset.del);});
+}
+function exportDeckText(){
+  if(!curDeck||!curDeck.heroCode){toast("Nothing to export.");return;}
+  const hero=q1("SELECT name FROM cards WHERE code=?",[curDeck.heroCode]);
+  const sig=signatureCards(curDeck.setCode);
+  let t=`${curDeck.name||hero.name}\nHero: ${hero.name}\nAspect: ${curDeck.aspect?FACTION[curDeck.aspect].n:'-'}\n\n— Signature —\n`;
+  sig.forEach(c=>t+=`${Math.max(1,availQty(c.code)||qtyInHomePack(c.code))}x ${c.name}\n`);
+  t+=`\n— ${curDeck.aspect?FACTION[curDeck.aspect].n:''} & Basic —\n`;
+  Object.entries(curDeck.cards).forEach(([code,n])=>{const c=q1("SELECT name FROM cards WHERE code=?",[code]);t+=`${n}x ${c?c.name:code}\n`;});
+  navigator.clipboard?.writeText(t).then(()=>toast("Deck copied to clipboard ✓"),()=>{});
+  download("deck-"+(curDeck.name||hero.name).replace(/[^\w]+/g,"_")+".txt",t,"text/plain");
+}
+
+/* ============================================================
+   IMPORT A MARVELCDB DECK  +  "WHAT AM I MISSING?"
+   ============================================================ */
+function packIndex(code){const i=PACKS.findIndex(p=>p.code===code);return i<0?9999:i;}
+async function apiJson(url){
+  try{const r=await fetch(url,{cache:"no-store"});if(r.ok)return await r.json();}catch(e){}
+  try{const r=await fetch(CORS_PROXY(url),{cache:"no-store"});if(r.ok)return await r.json();}catch(e){}
+  throw new Error("Couldn't reach MarvelCDB. Check your connection and try again.");
+}
+async function importDeck(){
+  const raw=($("#imp-url").value||"").trim();
+  if(!raw){toast("Paste a MarvelCDB deck link or ID first.");return;}
+  const m=raw.match(/(?:decklist|deck)\/(?:view|edit)\/(\d+)/)||raw.match(/^\s*(\d+)\s*$/)||raw.match(/(\d{2,})/);
+  if(!m){toast("Couldn't find a deck ID in that link.");return;}
+  const id=m[1];
+  if(!dataReady){await bootData(false); if(!dataReady)return;}
+  $("#imp-status").textContent="Fetching deck #"+id+"…";
+  let deck;
+  try{ deck=await apiJson(`https://marvelcdb.com/api/public/decklist/${id}.json`); }
+  catch(e){ $("#imp-status").textContent=""; toast(e.message); return; }
+  if(!deck||!deck.slots){ $("#imp-status").textContent=""; toast("That deck isn't published publicly (try a deck from the site's “Decklists”), or the ID is wrong."); return; }
+  loadImportedDeck(deck);
+  $("#imp-status").innerHTML=`Loaded <b>${esc(deck.name||('deck #'+id))}</b> into the builder below.`;
+}
+function loadImportedDeck(deck){
+  const hero=q1("SELECT * FROM cards WHERE code=?",[deck.hero_code]);
+  let aspect="";try{const mt=JSON.parse(deck.meta||"{}");aspect=mt.aspect||"";}catch(e){}
+  if(Array.isArray(aspect))aspect=aspect[0]||"";
+  if(!aspect){const counts={};Object.keys(deck.slots||{}).forEach(code=>{const c=q1("SELECT faction_code FROM cards WHERE code=?",[code]);if(c&&["aggression","justice","leadership","protection","pool"].includes(c.faction_code))counts[c.faction_code]=(counts[c.faction_code]||0)+1;});aspect=Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]||"";}
+  const heroSet=hero?hero.set_code:null;
+  curDeck={name:deck.name||"",heroCode:hero?hero.code:deck.hero_code,setCode:heroSet||"",aspect,cards:{}};
+  Object.entries(deck.slots||{}).forEach(([code,qty])=>{
+    const c=q1("SELECT set_code,type_code FROM cards WHERE code=?",[code]);
+    if(!c)return;
+    if(c.type_code==="hero"||c.type_code==="alter_ego")return;
+    if(heroSet&&c.set_code===heroSet)return; // signature cards are auto-included
+    curDeck.cards[code]=qty;
+  });
+  $("#db-name").value=curDeck.name;
+  $("#db-hero-owned").checked=false; // so the imported hero shows even if not owned yet
+  dbView=null;
+  switchTab("deck");
+  renderDeckBuilder();
+  showMissingReport(deck,hero);
+}
+function showMissingReport(deck,hero){
+  const req=[];
+  const add=(code,need)=>{const c=q1("SELECT name FROM cards WHERE code=?",[code]);const own=availQty(code);
+    const prs=q("SELECT pack_code FROM printings WHERE card_code=?",[code]);
+    req.push({code,name:c?c.name:code,need,own,short:Math.max(0,need-own),packs:prs.map(p=>p.pack_code)});};
+  add(deck.hero_code,1);
+  Object.entries(deck.slots||{}).forEach(([code,qty])=>{const c=q1("SELECT type_code FROM cards WHERE code=?",[code]);if(c&&(c.type_code==="hero"||c.type_code==="alter_ego"))return;add(code,qty);});
+  const missing=req.filter(r=>r.short>0);
+  const totNeed=req.reduce((a,r)=>a+r.need,0);
+  const haveCards=req.reduce((a,r)=>a+Math.min(r.own,r.need),0);
+  const heroOwned=availQty(deck.hero_code)>0;
+  const aspName=FACTION[curDeck.aspect]?FACTION[curDeck.aspect].n:null;
+  let html=`<div style="margin-bottom:14px">
+     <div class="muted" style="font-size:12px">Hero${aspName?" · Aspect":""}</div>
+     <b style="font-size:16px">${esc(deck.hero_name||(hero&&hero.name)||deck.hero_code)}</b>
+     ${heroOwned?'<span style="color:var(--good);font-size:12px"> ✓ owned</span>':'<span style="color:var(--bad);font-size:12px"> ✗ not owned</span>'}
+     ${aspName?` <span class="muted">· ${esc(aspName)}</span>`:""}</div>`;
+  if(!missing.length){
+    html+=`<div class="valbox ok"><b>✓ You already own every card in this deck.</b><br>You can build it right now from your collection.</div>`;
+  }else{
+    const byPack={};
+    missing.forEach(r=>{const packs=r.packs.slice().sort((a,b)=>((owned.has(a)?1:0)-(owned.has(b)?1:0))||(packIndex(a)-packIndex(b)));const src=packs[0]||"?";(byPack[src]=byPack[src]||[]).push(r);});
+    const copies=missing.reduce((a,r)=>a+r.short,0);
+    const nProd=Object.keys(byPack).length;
+    html+=`<div class="valbox no" style="margin-bottom:14px"><b>You're missing ${copies} card${copies===1?'':'s'}</b> &nbsp;(${haveCards}/${totNeed} already owned)<br>Get them from ${nProd} product${nProd===1?'':'s'}:</div>`;
+    html+=Object.keys(byPack).sort((a,b)=>packIndex(a)-packIndex(b)).map(pc=>{
+      const meta=PACKS.find(p=>p.code===pc)||{};
+      const items=byPack[pc].sort((a,b)=>a.name.localeCompare(b.name));
+      return `<div class="catblock" style="margin-bottom:10px"><div class="cathead">
+        <h3>${esc(packName(pc))}</h3>
+        <span class="pill" style="background:${groupColor(meta.type)}">${esc(shortType(meta.type))}</span>
+        <span class="ct">${items.length} card${items.length===1?'':'s'}</span></div>
+        <div style="padding:8px 14px">${items.map(r=>`<div class="rowline"><span class="nm" data-open="${r.code}" style="cursor:pointer">${esc(r.name)}</span><span class="muted">need ${r.need}${r.own?` · have ${r.own}`:''} → <b style="color:var(--bad)">+${r.short}</b></span></div>`).join("")}</div></div>`;
+    }).join("");
+  }
+  $("#m2-title").textContent=deck.name||"Deck check";
+  $("#m2-body").innerHTML=html;
+  $("#m2-body").querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openCard(b.dataset.open));
+  $("#modal2").classList.add("show");
+}
+
+/* ============================================================
+   BACKUP / RESTORE / EXPORT DB
+   ============================================================ */
+function download(name,content,mime){const b=new Blob([content],{type:mime||"application/octet-stream"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);}
+function backup(){download("marvel-champions-backup.json",JSON.stringify({owned:Array.from(owned),decks,saved:new Date().toISOString()},null,2),"application/json");toast("Backup downloaded ✓");}
+function restore(file){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.owned)owned=new Set(d.owned);if(d.decks)decks=d.decks;saveOwned();localStorage.setItem("mc_decks",JSON.stringify(decks));applyOwned();renderCollection();renderSavedDecks();updateStats();toast("Backup restored ✓");}catch(e){toast("Invalid backup file.");}};r.readAsText(file);}
+function exportDb(){if(!db){toast("Load the data first (open any card tab).");return;}download("marvel-champions.db",db.export(),"application/x-sqlite3");toast("SQLite database exported ✓");}
+
+/* ============================================================
+   TABS / NAV
+   ============================================================ */
+function requireData(targetEl){
+  if(dataReady)return true;
+  targetEl.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="big">⏳</div>Loading card data…<br><button class="btn primary" style="margin-top:14px" onclick="bootData()">Download card data now</button><div class="scrim" style="margin:12px auto 0">Needs internet the first time. ~a few seconds.</div></div>`;
+  return false;
+}
+async function bootData(force){
+  try{loader(true,"Preparing the card database…");
+    await ensureData(force);
+    loader(false);
+    fillPackFilter();renderCollection();renderSavedDecks();
+    refreshActiveTab();updateStats();
+    if(force)toast("Card data updated ✓");
+  }catch(e){loader(false);toast(e.message||"Could not load data. Check your connection.");console.error(e);}
+}
+function refreshActiveTab(){
+  const t=document.querySelector("nav.tabs button.active").dataset.tab;
+  if(t==="heroes")renderHeroes();
+  else if(t==="villains")renderVillains();
+  else if(t==="modular")renderModular();
+  else if(t==="cards"){if(!cardRows.length)runCardQuery();}
+  else if(t==="deck")renderDeckBuilder();
+}
+function switchTab(name){
+  $$("nav.tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));
+  $$("section.tab").forEach(s=>s.classList.toggle("active",s.id==="tab-"+name));
+  if(name==="collection")renderCollection();
+  else if(["heroes","villains","modular","cards","deck"].includes(name)){
+    if(!dataReady){bootData(false);} else refreshActiveTab();
+  }
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function fillPackFilter(){const s=$("#card-pack");s.innerHTML=`<option value="">All products</option>`+PACKS.map(p=>`<option value="${p.code}">${esc(p.name)}</option>`).join("");}
+function wire(){
+  $$("nav.tabs button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+  $("#coll-search").oninput=renderCollection;
+  $("#coll-all").onclick=()=>{PACKS.forEach(p=>owned.add(p.code));saveOwned();applyOwned();renderCollection();updateStats();};
+  $("#coll-none").onclick=()=>{if(confirm("Clear your whole collection?")){owned.clear();saveOwned();applyOwned();renderCollection();updateStats();}};
+  $("#hero-search").oninput=renderHeroes;$("#hero-owned").onchange=renderHeroes;
+  $("#vil-search").oninput=renderVillains;$("#vil-nemesis").onchange=renderVillains;$("#vil-owned").onchange=renderVillains;
+  $("#mod-search").oninput=renderModular;$("#mod-type").onchange=renderModular;$("#mod-owned").onchange=renderModular;
+  $("#card-search").oninput=runCardQuery;$("#card-faction").onchange=runCardQuery;$("#card-type").onchange=runCardQuery;$("#card-pack").onchange=runCardQuery;$("#card-owned").onchange=runCardQuery;
+  $("#card-more").onclick=showMoreCards;
+  $("#db-hero").onchange=e=>selectHero(e.target.value);
+  $("#db-hero-owned").onchange=renderDeckBuilder;
+  $("#db-pool-search").oninput=renderPool;$("#db-pool-type").onchange=renderPool;$("#db-pool-sort").onchange=renderPool;
+  $("#db-save").onclick=saveDeck;$("#db-new").onclick=newDeck;$("#db-export").onclick=exportDeckText;
+  $("#db-clear").onclick=()=>{if(curDeck){curDeck.cards={};renderDeckBuilder();}};
+  $("#btn-refresh").onclick=()=>bootData(true);
+  $("#btn-export").onclick=backup;
+  $("#btn-import").onclick=()=>$("#file-import").click();
+  $("#file-import").onchange=e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value="";};
+  $("#btn-export-db").onclick=exportDb;
+  $("#m-close").onclick=()=>$("#modal").classList.remove("show");
+  $("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+  $("#imp-go").onclick=importDeck;
+  $("#imp-url").addEventListener("keydown",e=>{if(e.key==="Enter")importDeck();});
+  $("#m2-close").onclick=()=>$("#modal2").classList.remove("show");
+  $("#modal2").onclick=e=>{if(e.target.id==="modal2")$("#modal2").classList.remove("show");};
+  $("#hm-close").onclick=()=>$("#hmodal").classList.remove("show");
+  $("#hmodal").onclick=e=>{if(e.target.id==="hmodal")$("#hmodal").classList.remove("show");};
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#modal").classList.remove("show");$("#modal2").classList.remove("show");$("#hmodal").classList.remove("show");}});
+}
+window.bootData=bootData;
+async function init(){
+  wire();fillPackFilter();renderCollection();renderSavedDecks();updateStats();
+  // try to load cached DB silently so stats fill in
+  try{await initSql();const cached=await idbGet("dbfile_v3");if(cached){db=new SQLLIB.Database(new Uint8Array(cached));applyOwned();detectEncounters();dataReady=true;updateStats();}}catch(e){}
+}
+init();
+</script>
+</body>
+</html>

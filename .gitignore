@@ -1,0 +1,15 @@
+# --- Secreto: hook de la "palabra mágica" + config local de Claude ---
+.claude/
+
+# --- Datos de ejecución del sync-server (perfiles de usuarios) ---
+sync-server/datos/
+
+# --- Dependencias / artefactos ---
+**/node_modules/
+*.lockb
+
+# --- Material de reglas con copyright de FFG (no republicar en repo público) ---
+mc_rulesreference_v17-compressed.pdf
+mc_rulesreference_v17.md
+mc_rules_clean.md
+mc_rules.md

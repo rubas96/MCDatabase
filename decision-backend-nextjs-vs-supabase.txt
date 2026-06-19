@@ -1,0 +1,123 @@
+================================================================
+MARVEL CHAMPIONS — DECISIÓN: SINCRONIZAR PERFILES EN LA NUBE
+¿Pasar a Next.js o añadir Supabase al HTML actual?
+(Notas para consultar antes de decidir — 18 jun 2026)
+================================================================
+
+CONTEXTO
+--------
+- Necesidad concreta: que un perfil creado en un dispositivo se vea en
+  otros (sincronización entre dispositivos).
+- App actual: UN solo archivo HTML (Marvel Champions Collection.html),
+  sin framework ni build. Datos en el navegador (SQLite vía sql.js +
+  IndexedDB + localStorage). Hosting rubas.aypapol.com = SOLO ESTÁTICO
+  (entrega el archivo, no ejecuta código ni guarda datos de usuario).
+- Por eso los perfiles NO se sincronizan: cada navegador tiene su propio
+  almacén local que nunca habla con los demás. No es un bug; es el diseño
+  "todo local". Para sync hace falta, por primera vez, un lugar en
+  internet donde guardar los perfiles.
+
+
+================================================================
+1. ¿QUÉ CONLLEVARÍA PASAR A NEXT.JS?
+================================================================
+Next.js NO es "añadir backend" al HTML actual: es REHACER la app sobre
+otra base. Implica:
+
+- REESCRITURA: pasar ~2000 líneas de HTML + JS plano + CSS inline a
+  componentes React. No es un port, es reconstruir la UI desde cero
+  (pestañas, deck builder, render de cartas, tema cómic...).
+
+- BUILD & TOOLING: adiós a "doble clic y abre". Entra npm, un bundler,
+  node_modules, un paso de compilación, probablemente TypeScript. Para
+  editar algo hay que levantar un servidor de desarrollo.
+
+- HOSTING QUE EJECUTA CÓDIGO: el backend de Next.js (API routes / server
+  actions) necesita un servidor Node corriendo. El hosting actual
+  (estático) NO puede ejecutarlo. Habría que desplegar en Vercel (su casa
+  natural), Netlify, Railway o un VPS.
+
+- SIGUES NECESITANDO UNA BASE DE DATOS: Next.js da el CÓDIGO del backend,
+  pero NO guarda datos. Las API routes son solo funciones. Para los
+  perfiles seguirías necesitando Postgres/Supabase/etc. aparte.
+
+- sql.js DEJA DE TENER SENTIDO: SQLite-en-el-navegador era para no tener
+  servidor. Con backend real, lo lógico es mover los datos a una BD de
+  servidor: otro rediseño de cómo se guarda todo.
+
+- MANTENIMIENTO: un repo con dependencias que envejecen, vulnerabilidades,
+  actualizaciones de framework. Una persona no-desarrolladora mantiene
+  mucho mejor un archivo HTML que un proyecto Next.js.
+
+ESFUERZO: días de trabajo y un rediseño, no una tarde. Y se pierde la
+mayor virtud actual: un archivo, cero infraestructura, abrir con doble
+clic, desplegar copiando un fichero.
+
+
+================================================================
+2. ¿ES NEXT.JS LO "MEJOR" PARA FRONT + BACKEND INTEGRADOS?
+================================================================
+Depende de la AMBICIÓN, no del framework.
+
+- SÍ es de las mejores opciones si quieres convertir esto en un PRODUCTO
+  WEB REAL: cuentas de usuario, lógica de servidor, varios usuarios
+  concurrentes, URL pública profesional, crecer en features. Elección
+  estándar y sólida (también SvelteKit, Nuxt o Remix).
+
+- PERO "backend integrado" en Next.js NO es magia: igual necesitas un host
+  que corra Node Y una base de datos aparte. Integra el CÓDIGO, no la
+  INFRAESTRUCTURA.
+
+- Para la necesidad ACTUAL (sincronizar unos KB de perfiles entre 2-3
+  dispositivos) es DESPROPORCIONADO: cambiarías una app de 1 archivo y
+  cero infra por pipeline de build + runtime de servidor + base de datos +
+  plataforma de despliegue... para mover un JSON.
+
+
+================================================================
+3. ALTERNATIVA RECOMENDADA: SUPABASE SOBRE EL HTML ACTUAL
+================================================================
+Punto medio que ES "front + backend" en versión ligera:
+
+  Mantener el archivo HTML único y añadir Supabase como backend.
+  Supabase ES el backend + la base de datos (gestionados, gratis). Se le
+  habla desde el JS del HTML con fetch. No se reescribe nada, no se monta
+  servidor, no hay build. Tienes sincronización en la nube HOY, y la app
+  sigue siendo un archivo.
+
+Identidad entre dispositivos: un CÓDIGO DE SINCRONIZACIÓN (un secreto que
+escribes igual en cada equipo; quien tenga ese código comparte esos
+perfiles). Evita montar cuentas con email/contraseña.
+
+
+================================================================
+4. MARCO PARA DECIDIR
+================================================================
+- "Quiero sync entre mis dispositivos y seguir con algo simple que yo
+  entienda"  ->  SUPABASE sobre el HTML actual. (Recomendado para lo que
+  se pidió.)
+
+- "Quiero que esto crezca a un producto multiusuario de verdad, con login,
+  y no me importa la curva ni el mantenimiento"  ->  replantearlo en
+  NEXT.JS (+ Supabase/Postgres como BD). Pero es un proyecto NUEVO, no una
+  mejora del actual.
+
+EN CLARO: Next.js es la herramienta correcta para un objetivo MÁS GRANDE
+del que hay ahora. Si el objetivo es "ver mis perfiles en otro
+dispositivo", Supabase sobre el HTML llega al mismo sitio con una fracción
+del coste.
+
+
+================================================================
+PREGUNTA PENDIENTE DE RESPONDER
+================================================================
+¿Intención de fondo?
+  (a) Resolver el sync y seguir ligero  ->  Supabase.
+  (b) Dar el salto a una app mayor / aprender Next.js  ->  Next.js (rewrite).
+
+Otras dudas abiertas para el sync (si se va por Supabase o File Browser):
+  - ¿Cuántas personas / dispositivos comparten perfiles?
+  - ¿Evitar crear cuentas nuevas a toda costa, o un registro gratis de
+    5 min está bien?
+  - ¿Sensibilidad de los datos / privacidad?
+================================================================

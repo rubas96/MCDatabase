@@ -1,0 +1,13 @@
+services:
+  mc-sync:
+    build: .
+    container_name: mc-sync
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      - PORT=8787
+      - DATA_DIR=/data
+    volumes:
+      # Persiste los perfiles en ./datos del host
+      - ./datos:/data
